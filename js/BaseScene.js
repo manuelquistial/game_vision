@@ -106,14 +106,14 @@ export default class BaseScene extends Phaser.Scene {
             this.timerProactive = this.time.addEvent(this.proactiveConfig)
         }
 
-        this.lights2.on('pointerup', function () {
-
+        this.lights2.on('pointerup', function (data) {
+            this.lights.color = 0xfff000
             this.timerDelayLight = this.time.addEvent({delay: this.timeDelay, callback: this.delayLight, args: [this], loop: false, paused: false})
 
         }, this);
 
-        this.lights.on('pointerup', function () {
-
+        this.lights.on('pointerup', function (data) {
+            this.lights2.color = 0xffff00
             this.timerDelayLight = this.time.addEvent({delay: this.timeDelay, callback: this.delayLight, args: [this], loop: false, paused: false})
         }, this);
     }
