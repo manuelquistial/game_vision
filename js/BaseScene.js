@@ -109,7 +109,7 @@ export default class BaseScene extends Phaser.Scene {
         this.lights2.on('pointerup', function () {
 
             console.log("time2")
-            
+
         }, this);
 
         this.lights.on('pointerup', function () {
@@ -196,7 +196,7 @@ export default class BaseScene extends Phaser.Scene {
                 "position_y": argThis.yLightPosition,
                 "response": 0
             }
-            argThis.postGameData(poinst)
+            //argThis.postGameData(poinst)
         }
     }
 
@@ -221,7 +221,7 @@ export default class BaseScene extends Phaser.Scene {
                     "position_y": argThis.yLightPosition,
                     "response": 1
                 }
-                argThis.postGameData(poinst)
+                //argThis.postGameData(poinst)
             }
         }else{
             let timeLimitLight = argThis.timerProactive.getElapsed()
@@ -236,7 +236,7 @@ export default class BaseScene extends Phaser.Scene {
                     "position_y": argThis.yLightPosition,
                     "response": 1
                 }
-                argThis.postGameData(poinst)
+                //argThis.postGameData(poinst)
             } 
         }
         argThis.gameModeAction()
