@@ -88,6 +88,8 @@ export default class BaseScene extends Phaser.Scene {
 
         this.gameModeAction()
         this.lights = this.add.circle(0, 0, this.radioLights, this.color);
+        this.lights2 = this.add.circle(200, 200, this.radioLights, this.color);
+        this.lights2.setInteractive()
         this.lights.setInteractive({ useHandCursor: true  }, new Phaser.Geom.Circle(this.radioLights, this.radioLights, this.radioLights), Phaser.Geom.Circle.Contains)
 
         this.aGrid.placeAt(this.xLightPosition, this.yLightPosition, this.lights);
@@ -104,10 +106,15 @@ export default class BaseScene extends Phaser.Scene {
             this.timerProactive = this.time.addEvent(this.proactiveConfig)
         }
 
+        this.lights2.on('pointerup', function () {
+
+            console.log("time2")
+            
+        }, this);
+
         this.lights.on('pointerup', function () {
 
-            this.timerDelayLight = this.time.addEvent({delay: this.timeDelay, callback: this.delayLight, args: [this], loop: false, paused: false})
-
+            console.log("time1")
         }, this);
     }
 
