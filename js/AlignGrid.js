@@ -1,24 +1,8 @@
-class AlignGrid {
+export default class AlignGrid{
 
     constructor(config) {
-        if (!config.scene) {
-            console.log("missing scene!");
-            return;
-        }
-        if (!config.rows) {
-            config.rows = 3;
-        }
-        if (!config.cols) {
-            config.cols = 3;
-        }
-        if (!config.width) {
-            config.width = game.config.width;
-        }
-        if (!config.height) {
-            config.height = game.config.height;
-        }
-        this.h = config.height;
-        this.w = config.width;
+        this.h = config.scene.game.config.height;
+        this.w = config.scene.game.config.width;
         this.rows = config.rows;
         this.cols = config.cols;
         //cw cell width is the scene width divided by the number of columns
