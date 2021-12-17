@@ -29,7 +29,7 @@ export default class PreloadMain extends Phaser.Scene {
         this.audio = window.parameters.sound_enable*/
         
         window.parameters.id_users_tests = 1
-        this.gameType = 2
+        this.gameType = 1
         this.gameMode = 1
         this.maxColumns = 5
         this.maxRows = 4
