@@ -107,13 +107,13 @@ export default class BaseScene extends Phaser.Scene {
         }
 
         this.lights2.on('pointerup', function (data) {
-            this.lights.color = 0xfff000
+            this.lights.setFillStyle(0xfff000, 1)
             this.timerDelayLight = this.time.addEvent({delay: this.timeDelay, callback: this.delayLight, args: [this], loop: false, paused: false})
 
         }, this);
 
         this.lights.on('pointerup', function (data) {
-            this.lights2.color = 0xffff00
+            this.lights2.setFillStyle(0xeeeeee, 0.5)
             this.timerDelayLight = this.time.addEvent({delay: this.timeDelay, callback: this.delayLight, args: [this], loop: false, paused: false})
         }, this);
     }
