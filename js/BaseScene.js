@@ -106,6 +106,8 @@ export default class BaseScene extends Phaser.Scene {
             this.timerProactive = this.time.addEvent(this.proactiveConfig)
         }
 
+        his.scene.input.addPointer(3);
+
         this.lights2.on('pointerup', function (data) {
             this.lights.setFillStyle(0xfff000, 1)
             this.timerDelayLight = this.time.addEvent({delay: this.timeDelay, callback: this.delayLight, args: [this], loop: false, paused: false})
