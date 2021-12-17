@@ -209,10 +209,6 @@ export default class BaseScene extends Phaser.Scene {
     }
 
     delayLight(argThis){
-        argThis.gameModeAction()
-        argThis.aGrid.placeAt(argThis.xLightPosition, argThis.yLightPosition, argThis.lights2);
-        argThis.gameModeAction()
-        argThis.aGrid.placeAt(argThis.xLightPosition, argThis.yLightPosition, argThis.lights);
     }
 
     finish(argThis){
