@@ -35,7 +35,7 @@ export default class PreloadMain extends Phaser.Scene {
         this.size = 90;
         this.color = 0xf00000
         this.colorFixation = 0xffffff
-        this.gameSelected = false //true: reactive, false: proactive
+        this.gameSelected = true //true: reactive, false: proactive
         this.speed = 2000 // ms
         this.timeDelay = 10 // ms
         this.timeFix = 500 // ms
