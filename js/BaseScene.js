@@ -106,7 +106,7 @@ export default class BaseScene extends Phaser.Scene {
             this.timerProactive = this.time.addEvent(this.proactiveConfig)
         }
 
-        this.scene.input.addPointer(3);
+        this.input.addPointer(3);
 
         this.lights2.on('pointerup', function (data) {
             console.log(data)
