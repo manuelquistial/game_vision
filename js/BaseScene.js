@@ -92,13 +92,6 @@ export default class BaseScene extends Phaser.Scene {
 
         this.aGrid.placeAt(this.xLightPosition, this.yLightPosition, this.lights);
 
-        this.gameModeAction()
-        this.lights2 = this.add.circle(0, 0, this.radioLights, this.color);
-        this.lights2.setInteractive({ useHandCursor: true  }, new Phaser.Geom.Circle(this.radioLights, this.radioLights, this.radioLights), Phaser.Geom.Circle.Contains)
-
-        this.aGrid.placeAt(this.xLightPosition, this.yLightPosition, this.lights2);
-
-
         if(this.gameSelected){
             if(this.timerProactive){
                 this.timerProactive.remove()
@@ -110,28 +103,43 @@ export default class BaseScene extends Phaser.Scene {
             }
             this.timerProactive = this.time.addEvent(this.proactiveConfig)
         }
-        this.input.addPointer(3)
-        this.lights.on('pointerup', function (data, value) {
 
-            this.timeLimitLight1 = this.timerReactive.getElapsed()
-            //this.timerDelayLight = this.time.addEvent({delay: this.timeDelay, callback: this.delayLight, args: [this], loop: false, paused: false})
-
+        this.lights.on('pointerup', function () {
+            if(this.gameSelected){
+                let timeLimitLight = this.timerReactive.getElapsed()
+                if(timeLimitLight < this.speed){
+                    this.timerReactive.reset(this.reactiveConfig)
+                    this.time.addEvent(this.timerReactive)
+                    this.successAudio ? this.successAudio.play() : null
+                    let points = {
+                        "time_reaction": timeLimitLight,
+                        "position_x": this.xLightPosition,
+                        "position_y": this.yLightPosition,
+                        "response": 1
+                    }
+                    this.postGameData(points)
+                }
+            }else{
+                let timeLimitLight = this.timerProactive.getElapsed()
+    
+                if(timeLimitLight < this.speed){
+                    this.timerProactive.reset(this.proactiveConfig)
+                    this.time.addEvent(this.timerProactive)
+                    this.successAudio ? this.successAudio.play() : null
+                    let points = {
+                        "time_reaction": timeLimitLight,
+                        "position_x": this.xLightPosition,
+                        "position_y": this.yLightPosition,
+                        "response": 1
+                    }
+                    this.postGameData(points)
+                } 
+            }
+            this.timerDelayLight = this.time.addEvent({delay: this.timeDelay, callback: this.delayLight, args: [this], loop: false, paused: false})
         }, this);
-
-        this.lights2.on('pointerup', function (data, value) {
-            this.timeLimitLight2 = this.timerReactive.getElapsed()
-            //this.timerDelayLight = this.time.addEvent({delay: this.timeDelay, callback: this.delayLight, args: [this], loop: false, paused: false})
-
-        }, this);
-
-        this.text = this.add.text(10, 10, 'Use up to 4 fingers at once', { font: '16px Courier', fill: '#00ff00' });
     }
 
     update() {
-        this.text.setText([
-            'pointer1: ' + this.timeLimitLight1,
-            'pointer2: ' + this.timeLimitLight2,
-        ]);
     }
 
     gameModeAction(){
@@ -187,13 +195,13 @@ export default class BaseScene extends Phaser.Scene {
     updatePosition(argThis){
         argThis.failureAudio ? argThis.failureAudio.play() : null
         let timeLimitLight = argThis.timerReactive.getElapsed()
-        let poinst = {
+        let points = {
             "time_reaction": timeLimitLight,
             "position_x": argThis.xLightPosition,
             "position_y": argThis.yLightPosition,
             "response": 0
         }
-        argThis.postGameData(poinst)
+        argThis.postGameData(points)
 
         argThis.gameModeAction()
         argThis.aGrid.placeAt(argThis.xLightPosition, argThis.yLightPosition, argThis.lights);
@@ -202,13 +210,13 @@ export default class BaseScene extends Phaser.Scene {
     failedByTime(argThis){
         if(argThis.timerReactive){
             let timeLimitLight = argThis.timerReactive.getElapsed()
-            let poinst = {
+            let points = {
                 "time_reaction": timeLimitLight,
                 "position_x": argThis.xLightPosition,
                 "position_y": argThis.yLightPosition,
                 "response": 0
             }
-            argThis.postGameData(poinst)
+            argThis.postGameData(points)
         }
     }
 
@@ -221,36 +229,6 @@ export default class BaseScene extends Phaser.Scene {
     }
 
     delayLight(argThis){
-        if(argThis.gameSelected){
-            let timeLimitLight = argThis.timerReactive.getElapsed()
-            if(timeLimitLight < argThis.speed){
-                argThis.timerReactive.reset(argThis.reactiveConfig)
-                argThis.time.addEvent(argThis.timerReactive)
-                argThis.successAudio ? argThis.successAudio.play() : null
-                let poinst = {
-                    "time_reaction": timeLimitLight,
-                    "position_x": argThis.xLightPosition,
-                    "position_y": argThis.yLightPosition,
-                    "response": 1
-                }
-                argThis.postGameData(poinst)
-            }
-        }else{
-            let timeLimitLight = argThis.timerProactive.getElapsed()
-
-            if(timeLimitLight < argThis.speed){
-                argThis.timerProactive.reset(argThis.proactiveConfig)
-                argThis.time.addEvent(argThis.timerProactive)
-                argThis.successAudio ? argThis.successAudio.play() : null
-                let poinst = {
-                    "time_reaction": timeLimitLight,
-                    "position_x": argThis.xLightPosition,
-                    "position_y": argThis.yLightPosition,
-                    "response": 1
-                }
-                argThis.postGameData(poinst)
-            } 
-        }
         argThis.gameModeAction()
         argThis.aGrid.placeAt(argThis.xLightPosition, argThis.yLightPosition, argThis.lights);
     }

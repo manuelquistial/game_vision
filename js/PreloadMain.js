@@ -28,14 +28,14 @@ export default class PreloadMain extends Phaser.Scene {
         this.finishTime = window.parameters.finish_time
         this.audio = window.parameters.sound_enable*/
         
-        this.gameType = 1
+        this.gameType = 3
         this.gameMode = 1
         this.maxColumns = 5
         this.maxRows = 4
         this.size = 90;
         this.color = 0xf00000
         this.colorFixation = 0xffffff
-        this.gameSelected = true //true: reactive, false: proactive
+        this.gameSelected = false //true: reactive, false: proactive
         this.speed = 2000 // ms
         this.timeDelay = 10 // ms
         this.timeFix = 500 // ms
@@ -44,12 +44,16 @@ export default class PreloadMain extends Phaser.Scene {
         this.percentageFixation = 0.5
         this.finishTime = 10000
         this.audio = true
+        this.doubleMode = 2 //1 diagonal right, 2 left, 3 horizontal 
 
         this.midMaxColumns = this.maxColumns / 2
         this.midMaxRows = this.maxRows / 2
 
         this.successAudio = null
         this.failureAudio = null
+
+        //this.load.audio('success', '../../assets/Test02MatrizV1/mp3/success.mp3');
+        //this.load.audio('failure', '../../assets/Test02MatrizV1/mp3/failure.mp3');
 
         this.load.audio('success', './mp3/success.mp3');
         this.load.audio('failure', './mp3/failure.mp3');
@@ -58,11 +62,11 @@ export default class PreloadMain extends Phaser.Scene {
     create() {
 
         if(this.audio){
-            this.successAudio =  this.sound.add('success', {
+            this.successAudio = this.sound.add('success', {
                 loop: false
             })
     
-            this.failureAudio =  this.sound.add('failure', {
+            this.failureAudio = this.sound.add('failure', {
                 loop: false
             })
         }
@@ -71,6 +75,8 @@ export default class PreloadMain extends Phaser.Scene {
             this.scene.start('BaseScene', this);
         }else if(this.gameType == 2){
             this.scene.start('LetterScene', this);
+        }else if(this.gameType == 3){
+            this.scene.start('DobleCircleScene', this);
         }
     }
 
@@ -142,7 +148,7 @@ export default class PreloadMain extends Phaser.Scene {
             .on('pointerover', () => button.setStyle({ fill: '#f39c12' }))
             .on('pointerout', () => button.setStyle({ fill: '#FFF' }))
             .on('pointerup', function () {
-                window.location.href = "http://www.w3schools.com";
+                window.location.href = "http://eyebix.online:8080/" + window.languaje.languajeFlag + "/eyematrix"
             }, this);
 
         this.msgBox = msgBox;

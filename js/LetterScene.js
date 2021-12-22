@@ -92,6 +92,31 @@ export default class LetterScene extends Phaser.Scene {
 
         this.lights.on('pointerup', function () {
 
+            let timeLimitLight = this.timerReactive.getElapsed()
+
+            if(timeLimitLight <= this.speed){
+                this.timerReactive.reset(this.reactiveConfig)
+                this.time.addEvent(this.timerReactive)
+                if(this.textFixation.text == this.letter.text){
+                    this.successAudio ? this.successAudio.play() : null
+                    let points = {
+                        "time_reaction": timeLimitLight,
+                        "position_x": this.xLightPosition,
+                        "position_y": this.yLightPosition,
+                        "response": 1
+                    }
+                    this.postGameData(points)
+                }else{
+                    this.failureAudio ? this.failureAudio.play() : null
+                    let points = {
+                        "time_reaction": timeLimitLight,
+                        "position_x": this.xLightPosition,
+                        "position_y": this.yLightPosition,
+                        "response": 0
+                    }
+                    this.postGameData(points)
+                }
+            }
             this.timerDelayLight = this.time.addEvent({delay: this.timeDelay, callback: this.delayLight, args: [this], loop: false, paused: false})
 
         }, this);
@@ -109,31 +134,6 @@ export default class LetterScene extends Phaser.Scene {
     }
 
     delayLight(argThis){
-        let timeLimitLight = argThis.timerReactive.getElapsed()
-
-        if(timeLimitLight <= argThis.speed){
-            argThis.timerReactive.reset(argThis.reactiveConfig)
-            argThis.time.addEvent(argThis.timerReactive)
-            if(argThis.textFixation.text == argThis.letter.text){
-                argThis.successAudio ? argThis.successAudio.play() : null
-                let poinst = {
-                    "time_reaction": timeLimitLight,
-                    "position_x": argThis.xLightPosition,
-                    "position_y": argThis.yLightPosition,
-                    "response": 1
-                }
-                argThis.postGameData(poinst)
-            }else{
-                argThis.failureAudio ? argThis.failureAudio.play() : null
-                let poinst = {
-                    "time_reaction": timeLimitLight,
-                    "position_x": argThis.xLightPosition,
-                    "position_y": argThis.yLightPosition,
-                    "response": 0
-                }
-                argThis.postGameData(poinst)
-            }
-        }
         argThis.gameModeAction()
         argThis.letter.text = argThis.randomLetter()
         argThis.aGrid.placeAt(argThis.xLightPosition, argThis.yLightPosition, argThis.container);
