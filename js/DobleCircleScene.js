@@ -97,11 +97,11 @@ export default class DobleCircleScene extends Phaser.Scene {
 
             this.timerDelayLight = this.time.addEvent({delay: this.timeDelay, callback: this.delayLight, args: [this], loop: false, paused: false})
 
-            this.gameModeActionLightOne()
+            /*this.gameModeActionLightOne()
             this.aGrid.placeAt(this.xLightPosition, this.yLightPosition, this.lightOne);
 
             this.gameModeActionLightTwo()
-            this.aGrid.placeAt(this.xLightPosition, this.yLightPosition, this.lightTwo);
+            this.aGrid.placeAt(this.xLightPosition, this.yLightPosition, this.lightTwo);*/
         }else{
             //this.failureAudio ? this.failureAudio.play() : null
         }
