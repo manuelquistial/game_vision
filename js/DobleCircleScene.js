@@ -22,9 +22,9 @@ export default class DobleCircleScene extends Phaser.Scene {
     }
 
     preload(){
-        this.timeLimitLightOne = 1
+        this.timeLimitLightOne = -2
         this.timeLimitLightTwo = -1
-        this.proactiveConfig = {delay: this.speed, callback: this.failedByTime, args: [this], loop: true, paused: false}
+        this.proactiveConfig = {delay: this.finishTime, args: [this], loop: false, paused: false}
     }
 
     create(){
@@ -82,7 +82,7 @@ export default class DobleCircleScene extends Phaser.Scene {
 
     update(){
         if(this.timeLimitLightOne == this.timeLimitLightTwo){
-            this.timeLimitLightOne = 1
+            this.timeLimitLightOne = -2
             this.timeLimitLightTwo = -1
             this.timerProactive.reset(this.proactiveConfig)
             this.time.addEvent(this.timerProactive)
@@ -145,19 +145,6 @@ export default class DobleCircleScene extends Phaser.Scene {
 
         argThis.gameModeActionLightTwo()
         argThis.aGrid.placeAt(argThis.xLightPosition, argThis.yLightPosition, argThis.lightTwo);
-    }
-
-    failedByTime(argThis){
-        if(argThis.timerReactive){
-            let timeLimitLight = argThis.timerReactive.getElapsed()
-            let poinst = {
-                "time_reaction": timeLimitLight,
-                "position_x": argThis.xLightPosition,
-                "position_y": argThis.yLightPosition,
-                "response": 0
-            }
-            argThis.postGameData(poinst)
-        }
     }
 
     updatePosition(argThis){

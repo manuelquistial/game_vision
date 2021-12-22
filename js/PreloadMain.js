@@ -11,25 +11,28 @@ export default class PreloadMain extends Phaser.Scene {
 
     preload() {
 
-        /*this.gameType = window.parameters.game_type
-        this.gameMode = window.parameters.game_mode
-        this.maxColumns = window.parameters.columns
-        this.maxRows = window.parameters.rows
-        this.size = window.parameters.size
-        this.color = window.parameters.color_light
-        this.colorFixation = window.parameters.color_fixation
-        this.gameSelected = window.parameters.game_elected //true: reactive, false: proactive
-        this.speed = window.parameters.time_light // ms
-        this.timeDelay = window.parameters.time_delay_light // ms
-        this.timeFix = window.parameters.time_fix_light // ms
-        this.fixationLetter = window.parameters.letter_fixation
-        this.fixationEnable = window.parameters.fixation_light_enable //on, off, blink
-        this.percentageFixation = window.parameters.porcent_fixation_light
-        this.finishTime = window.parameters.finish_time
-        this.audio = window.parameters.sound_enable*/
+        /*this.gameType = window.parameters.game_type //From 1 to 3, this is the game to choice
+        this.gameMode = window.parameters.game_mode //From 1 to 9, this is the screen mode divition 
+
+        //"columns" and "rows" define the number of circles to show
+        this.maxColumns = window.parameters.columns //This is an integer number, have dependencie of "rows"
+        this.maxRows = window.parameters.rows //This is an integer number, have dependencie of "columns"
+
+        this.size = window.parameters.size //Integer number, size of circles in pixeles
+        this.color = window.parameters.color_light //hexadecimal number of 6 digits ex, 0x000000
+        this.colorFixation = window.parameters.color_fixation //hexadecimal number of 6 digits ex, 0x000000
+        this.gameSelected = window.parameters.game_elected //Boolean true to reactive and false to proactive
+        this.speed = window.parameters.time_light //Integer number (ms)
+        this.timeDelay = window.parameters.time_delay_light //Integer number (ms)
+        this.timeFix = window.parameters.time_fix_light //Integer number (ms)
+        this.fixationLetter = window.parameters.letter_fixation //String, letter in uppercase to fix ex, "B"
+        this.fixationEnable = window.parameters.fixation_light_enable //String, "on", "off", "blink"
+        this.percentageFixation = window.parameters.porcent_fixation_light //Float, from 0.0 to 1.0  ex, 0.5
+        this.finishTime = window.parameters.finish_time //Integer number (ms)
+        this.audio = window.parameters.sound_enable //Boolean, true to enable audio and false to disable audio*/
         
-        this.gameType = 3
-        this.gameMode = 1
+        this.gameType = 3 // From 1 to 3, this is the game to choice
+        this.gameMode = 1 //
         this.maxColumns = 5
         this.maxRows = 4
         this.size = 90;

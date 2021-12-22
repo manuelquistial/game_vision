@@ -17,9 +17,9 @@ export default class LetterScene extends Phaser.Scene {
         this.fixationLetter = data.fixationLetter 
         this.fixationEnable = data.fixationEnable
         this.percentageFixation = data.percentageFixation
+        this.finishTime = data.finishTime
         this.midMaxColumns = data.midMaxColumns
         this.midMaxRows = data.midMaxRows
-        this.finishTime = data.finishTime
         this.successAudio = data.successAudio
         this.failureAudio = data.failureAudio
         this.showMessageBox = data.showMessageBox
