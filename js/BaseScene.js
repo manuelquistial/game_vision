@@ -105,6 +105,7 @@ export default class BaseScene extends Phaser.Scene {
         }
 
         this.lights.on('pointerup', function () {
+            
             if(this.gameSelected){
                 let timeLimitLight = this.timerReactive.getElapsed()
                 if(timeLimitLight < this.speed){
@@ -135,6 +136,8 @@ export default class BaseScene extends Phaser.Scene {
                     this.postGameData(points)
                 } 
             }
+            
+            this.lights.visible = false
             this.timerDelayLight = this.time.addEvent({delay: this.timeDelay, callback: this.delayLight, args: [this], loop: false, paused: false})
         }, this);
     }
@@ -229,6 +232,7 @@ export default class BaseScene extends Phaser.Scene {
     }
 
     delayLight(argThis){
+        argThis.lights.visible = true
         argThis.gameModeAction()
         argThis.aGrid.placeAt(argThis.xLightPosition, argThis.yLightPosition, argThis.lights);
     }

@@ -1,9 +1,9 @@
 import {default as AlignGrid} from './AlignGrid.js'
 
-export default class LetterScene extends Phaser.Scene {
+export default class FigureScene extends Phaser.Scene {
 
     constructor() {
-        super({ key: 'LetterScene' });
+        super({ key: 'FigureScene' });
     }
 
     init(data){
@@ -14,7 +14,7 @@ export default class LetterScene extends Phaser.Scene {
         this.colorFixation = data.colorFixation
         this.speed = data.speed
         this.timeDelay = data.timeDelay
-        this.fixationLetter = data.fixationLetter 
+        this.fixationFigure = data.fixationFigure
         this.fixationEnable = data.fixationEnable
         this.percentageFixation = data.percentageFixation
         this.finishTime = data.finishTime
@@ -25,6 +25,8 @@ export default class LetterScene extends Phaser.Scene {
         this.showMessageBox = data.showMessageBox
         this.postGameData = data.postGameData
 
+        this.figureSelection = data.figureSelection
+
         //functions
         this.randomNumber = data.randomNumber
 
@@ -33,6 +35,17 @@ export default class LetterScene extends Phaser.Scene {
 
     preload(){
         this.reactiveConfig = {delay: this.speed, callback: this.updatePosition, args: [this], loop: true, paused: false}
+        if(this.figureSelection == "figures"){
+            /*this.load.image('image_0', './img/apple.svg');
+            this.load.image('image_1', './img/circle.svg');
+            this.load.image('image_2', './img/house.svg');
+            this.load.image('image_3', './img/square.svg');*/
+
+            this.load.image('image_0', '../../assets/Test02MatrizV1/img/apple.svg');
+            this.load.image('image_1', '../../assets/Test02MatrizV1/img/circle.svg');
+            this.load.image('image_2', '../../assets/Test02MatrizV1/img/house.svg');
+            this.load.image('image_3', '../../assets/Test02MatrizV1/img/square.svg');
+        }
     }
 
     create(){
@@ -64,23 +77,53 @@ export default class LetterScene extends Phaser.Scene {
         }
 
         this.fixationLight = this.add.circle(0, 0, this.fixationRadio, this.colorFixation);
-        this.textFixation = this.add.text(0, 0, this.fixationLetter,{
-            fontFamily:'Arial',
-            color:'#000000',
-            align:'center',
-          }).setFontSize(2*this.fixationRadio).setOrigin(0.5);
-        
-        this.containerFixation = this.add.container(this.aGrid.w / 2, this.aGrid.h / 2, [this.fixationLight, this.textFixation])
+          
+        if(this.figureSelection == "letters" || this.figureSelection == "numbers" || this.figureSelection == "fix_letters"){
+            this.figureFixation = this.add.text(0, 0, this.fixationFigure, {
+                fontFamily:'Arial',
+                color:'#000000',
+                align:'center',
+              }).setFontSize(2*this.fixationRadio)
+        }else if(this.figureSelection == "figures"){
+            this.figureFixation = this.add.image(0, 0, this.fixationFigure)
+            this.figureFixation.displayWidth = this.aGrid.cw / this.maxColumns
+            this.figureFixation.scaleY = this.figureFixation.scaleX;
+        }
+
+        this.figureFixation.setOrigin(0.5)
+
+        this.containerFixation = this.add.container(this.aGrid.w / 2, this.aGrid.h / 2, [this.fixationLight, this.figureFixation])
 
         this.gameModeAction()
         this.lights = this.add.circle(0, 0, this.radioLights, this.color);
-        this.letter = this.add.text(0, 0, this.randomLetter(),{
-            fontFamily:'Arial',
-            color:'#000000',
-            align:'center',
-          }).setFontSize(2*this.radioLights).setOrigin(0.5);
 
-        this.container = this.add.container(0, 0, [this.lights, this.letter])
+        if(this.figureSelection == "letters"){
+            this.figures = this.add.text(0, 0, this.randomLetter(), {
+                fontFamily:'Arial',
+                color:'#000000',
+                align:'center',
+              }).setFontSize(2*this.radioLights)
+        }else if(this.figureSelection == "numbers"){
+            this.figures = this.add.text(0, 0, this.randomNumbers(), {
+                fontFamily:'Arial',
+                color:'#000000',
+                align:'center',
+              }).setFontSize(2*this.radioLights)
+        }else if(this.figureSelection == "fix_letters"){
+            this.figures = this.add.text(0, 0, this.randomFixLetters(), {
+                fontFamily:'Arial',
+                color:'#000000',
+                align:'center',
+              }).setFontSize(2*this.radioLights)
+        }else if(this.figureSelection == "figures"){
+            this.figures = this.add.image(0, 0, this.randomFigures())
+            this.figures.displayWidth = this.aGrid.cw / this.maxColumns
+            this.figures.scaleY = this.figures.scaleX;
+        }
+
+        this.figures.setOrigin(0.5)
+        
+        this.container = this.add.container(0, 0, [this.lights, this.figures])
         this.lights.setInteractive(new Phaser.Geom.Circle(this.radioLights, this.radioLights, this.radioLights), Phaser.Geom.Circle.Contains)
 
         this.aGrid.placeAt(this.xLightPosition, this.yLightPosition, this.container);
@@ -97,7 +140,15 @@ export default class LetterScene extends Phaser.Scene {
             if(timeLimitLight <= this.speed){
                 this.timerReactive.reset(this.reactiveConfig)
                 this.time.addEvent(this.timerReactive)
-                if(this.textFixation.text == this.letter.text){
+                let figureCompare = null
+
+                if(this.figures.text ? true : false){
+                    figureCompare = this.figureFixation.text == this.figures.text
+                }else{
+                    figureCompare = this.figureFixation.texture == this.figures.texture
+                }
+
+                if(figureCompare){
                     this.successAudio ? this.successAudio.play() : null
                     let points = {
                         "time_reaction": timeLimitLight,
@@ -117,6 +168,7 @@ export default class LetterScene extends Phaser.Scene {
                     this.postGameData(points)
                 }
             }
+            this.lights.visible = false
             this.timerDelayLight = this.time.addEvent({delay: this.timeDelay, callback: this.delayLight, args: [this], loop: false, paused: false})
 
         }, this);
@@ -129,20 +181,54 @@ export default class LetterScene extends Phaser.Scene {
 
     updatePosition(argThis){
         argThis.gameModeAction()
-        argThis.letter.text = argThis.randomLetter()
+
+        if(argThis.figureSelection == "letters"){
+            argThis.figures.text = argThis.randomLetter()
+        }else if(argThis.figureSelection == "numbers"){
+            argThis.figures.text = argThis.randomNumbers()
+        }else if(argThis.figureSelection == "figures"){
+            argThis.figures.setTexture(argThis.randomFigures())
+        }else if(argThis.figureSelection == "fix_letters"){
+            argThis.figures.text = argThis.randomFixLetters()
+        }
+
         argThis.aGrid.placeAt(argThis.xLightPosition, argThis.yLightPosition, argThis.container);
     }
 
     delayLight(argThis){
+        argThis.lights.visible = true
         argThis.gameModeAction()
-        argThis.letter.text = argThis.randomLetter()
+
+        if(argThis.figureSelection == "letters"){
+            argThis.figures.text = argThis.randomLetter()
+        }else if(argThis.figureSelection == "numbers"){
+            argThis.figures.text = argThis.randomNumbers()
+        }else if(argThis.figureSelection == "figures"){
+            argThis.figures.setTexture(argThis.randomFigures())
+        }else if(argThis.figureSelection == "fix_letters"){
+            argThis.figures.text = argThis.randomFixLetters()
+        }
+
         argThis.aGrid.placeAt(argThis.xLightPosition, argThis.yLightPosition, argThis.container);
     }
 
     // Function to generate random number 
     randomLetter() { 
         return String.fromCharCode(65 + Math.trunc(Math.random() * (25 - 0) + 0));
-    } 
+    }
+    
+    randomFixLetters(){
+        let fixLetters = ['P', 'B', 'D', 'Q', '5', 'S']
+        return fixLetters[this.randomNumber(0, fixLetters.length)]
+    }
+
+    randomFigures(){
+        return "image_" + this.randomNumber(0, 4).toString()
+    }
+
+    randomNumbers(){
+        return this.randomNumber(0, 10)
+    }
 
     finish(argThis){
         argThis.lights.destroy()

@@ -1,6 +1,6 @@
 import {default as PreloadMain} from "./PreloadMain.js"
 import {default as BaseScene} from "./BaseScene.js"
-import {default as LetterScene} from "./LetterScene.js"
+import {default as LetterScene} from "./FigureScene.js"
 import {default as DobleCircleScene} from "./DobleCircleScene.js"
 
 var config = {

@@ -14,6 +14,7 @@ export default class DobleCircleScene extends Phaser.Scene {
         this.color = data.color
         this.finishTime = data.finishTime
         this.doubleMode = data.doubleMode
+        this.dobleSelection = data.dobleSelection
 
         //functions
         this.randomNumber = data.randomNumber
@@ -36,7 +37,7 @@ export default class DobleCircleScene extends Phaser.Scene {
         
         this.aGrid = new AlignGrid(gridConfig);
 
-        this.aGrid.showNumbers();
+        //this.aGrid.showNumbers();
 
         if(this.aGrid.ch / 2 > this.aGrid.cw / 2){
             this.radioLights = this.aGrid.cw / 2
@@ -65,7 +66,8 @@ export default class DobleCircleScene extends Phaser.Scene {
         this.gameModeActionLightTwo()
         this.lightTwo = this.add.circle(0, 0, this.radioLights, this.color);
         this.lightTwo.setInteractive({ useHandCursor: true  }, new Phaser.Geom.Circle(this.radioLights, this.radioLights, this.radioLights), Phaser.Geom.Circle.Contains)
-
+        this.lightTwoPositionX = this.xLightPosition
+        this.lightTwoPositionY = this.yLightPosition
         this.aGrid.placeAt(this.xLightPosition, this.yLightPosition, this.lightTwo);
 
         this.timerProactive = this.time.addEvent(this.proactiveConfig)
@@ -82,18 +84,22 @@ export default class DobleCircleScene extends Phaser.Scene {
 
     update(){
         if(this.timeLimitLightOne == this.timeLimitLightTwo){
+            this.lights.lightOne = false
+            this.lights.lightTwo = false
             this.timeLimitLightOne = -2
             this.timeLimitLightTwo = -1
             this.timerProactive.reset(this.proactiveConfig)
             this.time.addEvent(this.timerProactive)
             this.successAudio ? argThis.successAudio.play() : null
-            /*let points = {
+            let points = {
                 "time_reaction": timeLimitLight,
                 "position_x": argThis.xLightPosition,
                 "position_y": argThis.yLightPosition,
+                "positionb_x": argThis.lightTwoPositionX,
+                "positionb_y": argThis.lightTwoPositionY,
                 "response": 1
-            }*/
-            //argThis.postGameData(points)
+            }
+            argThis.postGameData(points)
 
             this.timerDelayLight = this.time.addEvent({delay: this.timeDelay, callback: this.delayLight, args: [this], loop: false, paused: false})
 
@@ -118,8 +124,12 @@ export default class DobleCircleScene extends Phaser.Scene {
         }else if(this.doubleMode == 3){
             this.xLightPosition = this.randomNumber(0, this.maxColumns - 1)
             this.yLightPosition = this.randomNumber(0, this.maxRows)
-        }else{
-
+        }else if(this.doubleMode == 4){
+            this.xLightPosition = this.randomNumber(0, this.maxColumns)
+            this.yLightPosition = this.randomNumber(0, this.maxRows - 1)
+        }else if(this.doubleMode == 5){
+            this.xLightPosition = this.randomNumber(1, this.maxColumns - 1)
+            this.yLightPosition = this.randomNumber(0, this.maxRows - 1)
         }
     }
 
@@ -133,37 +143,34 @@ export default class DobleCircleScene extends Phaser.Scene {
         }else if(this.doubleMode == 3){
             this.xLightPosition = this.xLightPosition + 1
             this.yLightPosition = this.yLightPosition
-        }else{
-
+        }else if(this.doubleMode == 4){
+            this.xLightPosition = this.xLightPosition
+            this.yLightPosition = this.yLightPosition + 1
+        }else if(this.doubleMode == 5){
+            let changePosX = this.randomNumber(-2, 2)
+            this.xLightPosition = this.xLightPosition + changePosX
+            this.yLightPosition = this.yLightPosition + (changePosX == 0 ? 1 : this.randomNumber(-1, 2))
         }
+
+        this.lightTwoPositionX = this.xLightPosition
+        this.lightTwoPositionY = this.yLightPosition
     }
 
     delayLight(argThis){
- 
+        argThis.lightOne.visible = true
+        argThis.lightTwo.visible = true
         argThis.gameModeActionLightOne()
         argThis.aGrid.placeAt(argThis.xLightPosition, argThis.yLightPosition, argThis.lightOne);
 
         argThis.gameModeActionLightTwo()
+        argThis.lightTwoPositionX = this.xLightPosition
+        argThis.lightTwoPositionY = this.yLightPosition
         argThis.aGrid.placeAt(argThis.xLightPosition, argThis.yLightPosition, argThis.lightTwo);
     }
 
-    updatePosition(argThis){
-        argThis.failureAudio ? argThis.failureAudio.play() : null
-        let timeLimitLight = argThis.timerReactive.getElapsed()
-        let poinst = {
-            "time_reaction": timeLimitLight,
-            "position_x": argThis.xLightPosition,
-            "position_y": argThis.yLightPosition,
-            "response": 0
-        }
-        argThis.postGameData(poinst)
-
-        argThis.gameModeAction()
-        argThis.aGrid.placeAt(argThis.xLightPosition, argThis.yLightPosition, argThis.lights);
-    }
-
     finish(argThis){
-        argThis.lights.destroy()
+        argThis.lightOne.destroy()
+        argThis.lightTwo.destroy()
         argThis.timerProactive ? argThis.timerProactive.paused = true : null
         argThis.timerDelayLight ? argThis.timerDelayLight.paused = true : null
         argThis.showMessageBox(window.languaje.message_1, argThis.aGrid.w * .3, argThis.aGrid.h * .3);

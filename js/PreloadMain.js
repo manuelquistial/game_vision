@@ -11,7 +11,7 @@ export default class PreloadMain extends Phaser.Scene {
 
     preload() {
 
-        /*this.gameType = window.parameters.game_type //From 1 to 3, this is the game to choice
+        this.gameType = window.parameters.game_type //From 1 to 3, this is the game to choice
         this.gameMode = window.parameters.game_mode //From 1 to 9, this is the screen mode divition 
 
         //"columns" and "rows" define the number of circles to show
@@ -21,17 +21,18 @@ export default class PreloadMain extends Phaser.Scene {
         this.size = window.parameters.size //Integer number, size of circles in pixeles
         this.color = window.parameters.color_light //hexadecimal number of 6 digits ex, 0x000000
         this.colorFixation = window.parameters.color_fixation //hexadecimal number of 6 digits ex, 0x000000
-        this.gameSelected = window.parameters.game_elected //Boolean true to reactive and false to proactive
+        this.gameSelected = window.parameters.game_selected //Boolean true to reactive and false to proactive
         this.speed = window.parameters.time_light //Integer number (ms)
         this.timeDelay = window.parameters.time_delay_light //Integer number (ms)
         this.timeFix = window.parameters.time_fix_light //Integer number (ms)
-        this.fixationLetter = window.parameters.letter_fixation //String, letter in uppercase to fix ex, "B"
+        this.fixationFigure = window.parameters.fixation_figures //String, letter in uppercase to fix ex, "B"
         this.fixationEnable = window.parameters.fixation_light_enable //String, "on", "off", "blink"
         this.percentageFixation = window.parameters.porcent_fixation_light //Float, from 0.0 to 1.0  ex, 0.5
         this.finishTime = window.parameters.finish_time //Integer number (ms)
-        this.audio = window.parameters.sound_enable //Boolean, true to enable audio and false to disable audio*/
+        this.audio = window.parameters.sound_enable //Boolean, true to enable audio and false to disable audio
+        this.doubleMode = window.parameters.double_mode
         
-        this.gameType = 3 // From 1 to 3, this is the game to choice
+        /*this.gameType = 4 // From 1 to 4, this is the game to choice
         this.gameMode = 1 //
         this.maxColumns = 5
         this.maxRows = 4
@@ -42,24 +43,24 @@ export default class PreloadMain extends Phaser.Scene {
         this.speed = 2000 // ms
         this.timeDelay = 10 // ms
         this.timeFix = 500 // ms
-        this.fixationLetter = "A"
+        this.fixationFigure = "image_0" //here select letter, ex, image_# : # 0,1,2,3
         this.fixationEnable = 'on'//on, off, blink
         this.percentageFixation = 0.5
-        this.finishTime = 10000
+        this.finishTime = 60000
         this.audio = true
-        this.doubleMode = 2 //1 diagonal right, 2 left, 3 horizontal 
-
+        this.doubleMode = 5 //1 diagonal right, 2 left, 3 horizontal, 4 vertical, 5 aleatorio
+        */
         this.midMaxColumns = this.maxColumns / 2
         this.midMaxRows = this.maxRows / 2
 
         this.successAudio = null
         this.failureAudio = null
 
-        //this.load.audio('success', '../../assets/Test02MatrizV1/mp3/success.mp3');
-        //this.load.audio('failure', '../../assets/Test02MatrizV1/mp3/failure.mp3');
+        this.load.audio('success', '../../assets/Test02MatrizV1/mp3/success.mp3');
+        this.load.audio('failure', '../../assets/Test02MatrizV1/mp3/failure.mp3');
 
-        this.load.audio('success', './mp3/success.mp3');
-        this.load.audio('failure', './mp3/failure.mp3');
+        //this.load.audio('success', './mp3/success.mp3');
+        //this.load.audio('failure', './mp3/failure.mp3');
     }
 
     create() {
@@ -77,8 +78,22 @@ export default class PreloadMain extends Phaser.Scene {
         if(this.gameType == 1){
             this.scene.start('BaseScene', this);
         }else if(this.gameType == 2){
-            this.scene.start('LetterScene', this);
+            this.figureSelection = "letters"
+            this.scene.start('FigureScene', this);
         }else if(this.gameType == 3){
+            this.figureSelection = "numbers"
+            this.scene.start('FigureScene', this);
+        }else if(this.gameType == 4){
+            this.figureSelection = "figures"
+            this.scene.start('FigureScene', this);
+        }else if(this.gameType == 5){
+            this.dobleSelection = "doble_circle"
+            this.scene.start('DobleCircleScene', this);
+        }else if(this.gameType == 6){
+            this.figureSelection = "fix_letters"
+            this.scene.start('FigureScene', this);
+        }else if(this.gameType == 7){
+            this.dobleSelection = "doble_random"
             this.scene.start('DobleCircleScene', this);
         }
     }
