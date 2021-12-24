@@ -102,6 +102,7 @@ export default class DoubleCircleScene extends Phaser.Scene {
             //argThis.postGameData(points)
             this.timeLimitLightOne = -2
             this.timeLimitLightTwo = -1
+            
             this.timerDelayLight = this.time.addEvent({delay: this.timeDelay, callback: this.delayLight, args: [this], loop: false, paused: false})
         }
     }
@@ -160,8 +161,8 @@ export default class DoubleCircleScene extends Phaser.Scene {
         argThis.aGrid.placeAt(argThis.xLightPosition, argThis.yLightPosition, argThis.lightOne);
 
         argThis.gameModeActionLightTwo()
-        argThis.lightTwoPositionX = this.xLightPosition
-        argThis.lightTwoPositionY = this.yLightPosition
+        argThis.lightTwoPositionX = argThis.xLightPosition
+        argThis.lightTwoPositionY = argThis.yLightPosition
         argThis.aGrid.placeAt(argThis.xLightPosition, argThis.yLightPosition, argThis.lightTwo);
     }
 
