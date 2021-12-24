@@ -1,9 +1,9 @@
 import {default as AlignGrid} from './AlignGrid.js'
 
-export default class DobleCircleScene extends Phaser.Scene {
+export default class DoubleCircleScene extends Phaser.Scene {
 
     constructor() {
-        super({ key: 'DobleCircleScene' });
+        super({ key: 'DoubleCircleScene' });
     }
 
     init(data){
@@ -15,6 +15,7 @@ export default class DobleCircleScene extends Phaser.Scene {
         this.finishTime = data.finishTime
         this.successAudio = data.successAudio
         this.failureAudio = data.failureAudio
+        this.doubleMode = data.doubleMode
         this.showMessageBox = data.showMessageBox
         this.postGameData = data.postGameData
 
@@ -91,8 +92,6 @@ export default class DobleCircleScene extends Phaser.Scene {
             this.lightTwo.visible = false
             this.timeLimitLightOne = -2
             this.timeLimitLightTwo = -1
-            this.timerProactive.reset(this.proactiveConfig)
-            this.time.addEvent(this.timerProactive)
             this.successAudio ? argThis.successAudio.play() : null
             let points = {
                 "time_reaction": timeLimitLightOne,
@@ -102,7 +101,7 @@ export default class DobleCircleScene extends Phaser.Scene {
                 "positionb_y": argThis.lightTwoPositionY,
                 "response": 1
             }
-            argThis.postGameData(points)
+            //argThis.postGameData(points)
 
             this.timerDelayLight = this.time.addEvent({delay: this.timeDelay, callback: this.delayLight, args: [this], loop: false, paused: false})
         }
@@ -154,6 +153,10 @@ export default class DobleCircleScene extends Phaser.Scene {
     delayLight(argThis){
         argThis.lightOne.visible = true
         argThis.lightTwo.visible = true
+
+        argThis.timerProactive.reset(argThis.proactiveConfig)
+        argThis.time.addEvent(argThis.timerProactive)
+
         argThis.gameModeActionLightOne()
         argThis.aGrid.placeAt(argThis.xLightPosition, argThis.yLightPosition, argThis.lightOne);
 

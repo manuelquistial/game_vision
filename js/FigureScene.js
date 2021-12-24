@@ -36,15 +36,15 @@ export default class FigureScene extends Phaser.Scene {
     preload(){
         this.reactiveConfig = {delay: this.speed, callback: this.updatePosition, args: [this], loop: true, paused: false}
         if(this.figureSelection == "figures"){
-            /*this.load.image('image_0', './img/apple.svg');
+            this.load.image('image_0', './img/apple.svg');
             this.load.image('image_1', './img/circle.svg');
             this.load.image('image_2', './img/house.svg');
-            this.load.image('image_3', './img/square.svg');*/
+            this.load.image('image_3', './img/square.svg');
 
-            this.load.image('image_0', '../../assets/Test02MatrizV1/img/apple.svg');
+            /*this.load.image('image_0', '../../assets/Test02MatrizV1/img/apple.svg');
             this.load.image('image_1', '../../assets/Test02MatrizV1/img/circle.svg');
             this.load.image('image_2', '../../assets/Test02MatrizV1/img/house.svg');
-            this.load.image('image_3', '../../assets/Test02MatrizV1/img/square.svg');
+            this.load.image('image_3', '../../assets/Test02MatrizV1/img/square.svg');*/
         }
     }
 
@@ -86,7 +86,7 @@ export default class FigureScene extends Phaser.Scene {
               }).setFontSize(2*this.fixationRadio)
         }else if(this.figureSelection == "figures"){
             this.figureFixation = this.add.image(0, 0, this.fixationFigure)
-            this.figureFixation.displayWidth = this.aGrid.cw / this.maxColumns
+            this.figureFixation.displayWidth = this.fixationRadio
             this.figureFixation.scaleY = this.figureFixation.scaleX;
         }
 
@@ -117,7 +117,7 @@ export default class FigureScene extends Phaser.Scene {
               }).setFontSize(2*this.radioLights)
         }else if(this.figureSelection == "figures"){
             this.figures = this.add.image(0, 0, this.randomFigures())
-            this.figures.displayWidth = this.aGrid.cw / this.maxColumns
+            this.figures.displayWidth = this.radioLights
             this.figures.scaleY = this.figures.scaleX;
         }
 
@@ -138,8 +138,6 @@ export default class FigureScene extends Phaser.Scene {
             let timeLimitLight = this.timerReactive.getElapsed()
 
             if(timeLimitLight <= this.speed){
-                this.timerReactive.reset(this.reactiveConfig)
-                this.time.addEvent(this.timerReactive)
                 let figureCompare = null
 
                 if(this.figures.text ? true : false){
@@ -197,6 +195,9 @@ export default class FigureScene extends Phaser.Scene {
 
     delayLight(argThis){
         argThis.lights.visible = true
+        argThis.timerReactive.reset(argThis.reactiveConfig)
+        argThis.time.addEvent(argThis.timerReactive)
+
         argThis.gameModeAction()
 
         if(argThis.figureSelection == "letters"){
@@ -218,7 +219,7 @@ export default class FigureScene extends Phaser.Scene {
     }
     
     randomFixLetters(){
-        let fixLetters = ['P', 'B', 'D', 'Q', '5', 'S']
+        let fixLetters = ['p', 'b', 'd', 'q', '5', 's']
         return fixLetters[this.randomNumber(0, fixLetters.length)]
     }
 

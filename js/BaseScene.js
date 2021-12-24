@@ -233,6 +233,13 @@ export default class BaseScene extends Phaser.Scene {
 
     delayLight(argThis){
         argThis.lights.visible = true
+        if(this.gameSelected){
+            argThis.timerReactive.reset(argThis.reactiveConfig)
+            argThis.time.addEvent(argThis.timerReactive)
+        }else{
+            argThis.timerProactive.reset(argThis.proactiveConfig)
+            argThis.time.addEvent(argThis.timerProactive)
+        }
         argThis.gameModeAction()
         argThis.aGrid.placeAt(argThis.xLightPosition, argThis.yLightPosition, argThis.lights);
     }
