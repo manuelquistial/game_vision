@@ -95,16 +95,16 @@ export default class DoubleCircleScene extends Phaser.Scene {
         if(this.timeLimitLightOne == this.timeLimitLightTwo){
             this.lightOne.visible = false
             this.lightTwo.visible = false
-            this.successAudio ? argThis.successAudio.play() : null
+            this.successAudio ? this.successAudio.play() : null
             let points = {
-                "time_reaction": timeLimitLightOne,
-                "position_x": argThis.xLightPosition,
-                "position_y": argThis.yLightPosition,
-                "positionb_x": argThis.lightTwoPositionX,
-                "positionb_y": argThis.lightTwoPositionY,
+                "time_reaction": this.timeLimitLightOne,
+                "position_x": this.xLightPosition,
+                "position_y": this.yLightPosition,
+                "positionb_x": this.lightTwoPositionX,
+                "positionb_y": this.lightTwoPositionY,
                 "response": 1
             }
-            //argThis.postGameData(points)
+            //this.postGameData(points)
             this.timeLimitLightOne = -2
             this.timeLimitLightTwo = -1
             
