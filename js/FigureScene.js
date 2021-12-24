@@ -133,7 +133,7 @@ export default class FigureScene extends Phaser.Scene {
         }
         this.timerReactive = this.time.addEvent(this.reactiveConfig)
 
-        this.lights.on('pointerup', function () {
+        this.lights.on('pointerdown', function () {
 
             let timeLimitLight = this.timerReactive.getElapsed()
 

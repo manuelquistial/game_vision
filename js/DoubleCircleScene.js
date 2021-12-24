@@ -13,8 +13,10 @@ export default class DobleCircleScene extends Phaser.Scene {
         this.size = data.size
         this.color = data.color
         this.finishTime = data.finishTime
-        this.doubleMode = data.doubleMode
-        this.dobleSelection = data.dobleSelection
+        this.successAudio = data.successAudio
+        this.failureAudio = data.failureAudio
+        this.showMessageBox = data.showMessageBox
+        this.postGameData = data.postGameData
 
         //functions
         this.randomNumber = data.randomNumber
@@ -73,26 +75,27 @@ export default class DobleCircleScene extends Phaser.Scene {
         this.timerProactive = this.time.addEvent(this.proactiveConfig)
 
         this.input.addPointer(3)
-        this.lightOne.on('pointerup', function (data, value) {
+        
+        this.lightOne.on('pointerdown', function () {
             this.timeLimitLightOne = this.timerProactive.getElapsed()
         }, this);
 
-        this.lightTwo.on('pointerup', function (data, value) {
+        this.lightTwo.on('pointerdown', function () {
             this.timeLimitLightTwo = this.timerProactive.getElapsed()
         }, this);
     }
 
     update(){
         if(this.timeLimitLightOne == this.timeLimitLightTwo){
-            this.lights.lightOne = false
-            this.lights.lightTwo = false
+            this.lightOne.visible = false
+            this.lightTwo.visible = false
             this.timeLimitLightOne = -2
             this.timeLimitLightTwo = -1
             this.timerProactive.reset(this.proactiveConfig)
             this.time.addEvent(this.timerProactive)
             this.successAudio ? argThis.successAudio.play() : null
             let points = {
-                "time_reaction": timeLimitLight,
+                "time_reaction": timeLimitLightOne,
                 "position_x": argThis.xLightPosition,
                 "position_y": argThis.yLightPosition,
                 "positionb_x": argThis.lightTwoPositionX,
@@ -102,14 +105,6 @@ export default class DobleCircleScene extends Phaser.Scene {
             argThis.postGameData(points)
 
             this.timerDelayLight = this.time.addEvent({delay: this.timeDelay, callback: this.delayLight, args: [this], loop: false, paused: false})
-
-            /*this.gameModeActionLightOne()
-            this.aGrid.placeAt(this.xLightPosition, this.yLightPosition, this.lightOne);
-
-            this.gameModeActionLightTwo()
-            this.aGrid.placeAt(this.xLightPosition, this.yLightPosition, this.lightTwo);*/
-        }else{
-            //this.failureAudio ? this.failureAudio.play() : null
         }
     }
 

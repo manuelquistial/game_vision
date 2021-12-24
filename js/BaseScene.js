@@ -104,7 +104,7 @@ export default class BaseScene extends Phaser.Scene {
             this.timerProactive = this.time.addEvent(this.proactiveConfig)
         }
 
-        this.lights.on('pointerup', function () {
+        this.lights.on('pointerdown', function () {
             
             if(this.gameSelected){
                 let timeLimitLight = this.timerReactive.getElapsed()
@@ -136,7 +136,7 @@ export default class BaseScene extends Phaser.Scene {
                     this.postGameData(points)
                 } 
             }
-            
+
             this.lights.visible = false
             this.timerDelayLight = this.time.addEvent({delay: this.timeDelay, callback: this.delayLight, args: [this], loop: false, paused: false})
         }, this);

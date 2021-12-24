@@ -1,7 +1,8 @@
 import {default as PreloadMain} from "./PreloadMain.js"
 import {default as BaseScene} from "./BaseScene.js"
 import {default as LetterScene} from "./FigureScene.js"
-import {default as DobleCircleScene} from "./DobleCircleScene.js"
+import {default as DoubleCircleScene} from "./DoubleCircleScene.js"
+import {default as GoNoGoScene} from "./GoNoGoScene.js"
 
 var config = {
     type: Phaser.AUTO,
@@ -11,7 +12,7 @@ var config = {
         height: window.innerHeight,
     },
     parent: 'phaser-game',
-    scene: [PreloadMain, BaseScene, LetterScene, DobleCircleScene]
+    scene: [PreloadMain, BaseScene, LetterScene, DoubleCircleScene, GoNoGoScene]
 };
 
 var game = new Phaser.Game(config);

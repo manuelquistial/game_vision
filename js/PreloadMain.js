@@ -11,7 +11,7 @@ export default class PreloadMain extends Phaser.Scene {
 
     preload() {
 
-        this.gameType = window.parameters.game_type //From 1 to 3, this is the game to choice
+        /*this.gameType = window.parameters.game_type //From 1 to 3, this is the game to choice
         this.gameMode = window.parameters.game_mode //From 1 to 9, this is the screen mode divition 
 
         //"columns" and "rows" define the number of circles to show
@@ -31,8 +31,8 @@ export default class PreloadMain extends Phaser.Scene {
         this.finishTime = window.parameters.finish_time //Integer number (ms)
         this.audio = window.parameters.sound_enable //Boolean, true to enable audio and false to disable audio
         this.doubleMode = window.parameters.double_mode
-        
-        /*this.gameType = 4 // From 1 to 4, this is the game to choice
+*/
+        this.gameType = 7 // From 1 to 4, this is the game to choice
         this.gameMode = 1 //
         this.maxColumns = 5
         this.maxRows = 4
@@ -40,27 +40,28 @@ export default class PreloadMain extends Phaser.Scene {
         this.color = 0xf00000
         this.colorFixation = 0xffffff
         this.gameSelected = false //true: reactive, false: proactive
-        this.speed = 2000 // ms
+        this.speed = 300 // ms
         this.timeDelay = 10 // ms
         this.timeFix = 500 // ms
         this.fixationFigure = "image_0" //here select letter, ex, image_# : # 0,1,2,3
-        this.fixationEnable = 'on'//on, off, blink
+        this.fixationEnable = "off"//on, off, blink
         this.percentageFixation = 0.5
         this.finishTime = 60000
         this.audio = true
         this.doubleMode = 5 //1 diagonal right, 2 left, 3 horizontal, 4 vertical, 5 aleatorio
-        */
+        this.failureColorCircle = 0xefd000 
+        
         this.midMaxColumns = this.maxColumns / 2
         this.midMaxRows = this.maxRows / 2
 
         this.successAudio = null
         this.failureAudio = null
 
-        this.load.audio('success', '../../assets/Test02MatrizV1/mp3/success.mp3');
-        this.load.audio('failure', '../../assets/Test02MatrizV1/mp3/failure.mp3');
+        //this.load.audio('success', '../../assets/Test02MatrizV1/mp3/success.mp3');
+        //this.load.audio('failure', '../../assets/Test02MatrizV1/mp3/failure.mp3');
 
-        //this.load.audio('success', './mp3/success.mp3');
-        //this.load.audio('failure', './mp3/failure.mp3');
+        this.load.audio('success', './mp3/success.mp3');
+        this.load.audio('failure', './mp3/failure.mp3');
     }
 
     create() {
@@ -87,14 +88,12 @@ export default class PreloadMain extends Phaser.Scene {
             this.figureSelection = "figures"
             this.scene.start('FigureScene', this);
         }else if(this.gameType == 5){
-            this.dobleSelection = "doble_circle"
-            this.scene.start('DobleCircleScene', this);
+            this.scene.start('DoubleCircleScene', this);
         }else if(this.gameType == 6){
             this.figureSelection = "fix_letters"
             this.scene.start('FigureScene', this);
         }else if(this.gameType == 7){
-            this.dobleSelection = "doble_random"
-            this.scene.start('DobleCircleScene', this);
+            this.scene.start('GoNoGoScene', this);
         }
     }
 
