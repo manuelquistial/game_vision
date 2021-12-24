@@ -84,9 +84,14 @@ export default class DoubleCircleScene extends Phaser.Scene {
         this.lightTwo.on('pointerup', function () {
             this.timeLimitLightTwo = this.timerProactive.getElapsed()
         }, this);
+
+        this.one = this.add.text(100, 100, 'Hello World', { fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif' });
+        this.two = this.add.text(100, 150, 'Hello World', { fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif' });
     }
 
     update(){
+        this.one.text = this.timeLimitLightOne
+        this.two.text = this.timeLimitLightTwo
         if(this.timeLimitLightOne == this.timeLimitLightTwo){
             this.lightOne.visible = false
             this.lightTwo.visible = false
