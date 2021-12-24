@@ -77,11 +77,11 @@ export default class DoubleCircleScene extends Phaser.Scene {
 
         this.input.addPointer(3)
         
-        this.lightOne.on('pointerdown', function () {
+        this.lightOne.on('pointerup', function () {
             this.timeLimitLightOne = this.timerProactive.getElapsed()
         }, this);
 
-        this.lightTwo.on('pointerdown', function () {
+        this.lightTwo.on('pointerup', function () {
             this.timeLimitLightTwo = this.timerProactive.getElapsed()
         }, this);
     }
@@ -90,8 +90,6 @@ export default class DoubleCircleScene extends Phaser.Scene {
         if(this.timeLimitLightOne == this.timeLimitLightTwo){
             this.lightOne.visible = false
             this.lightTwo.visible = false
-            this.timeLimitLightOne = -2
-            this.timeLimitLightTwo = -1
             this.successAudio ? argThis.successAudio.play() : null
             let points = {
                 "time_reaction": timeLimitLightOne,
@@ -102,7 +100,8 @@ export default class DoubleCircleScene extends Phaser.Scene {
                 "response": 1
             }
             //argThis.postGameData(points)
-
+            this.timeLimitLightOne = -2
+            this.timeLimitLightTwo = -1
             this.timerDelayLight = this.time.addEvent({delay: this.timeDelay, callback: this.delayLight, args: [this], loop: false, paused: false})
         }
     }
