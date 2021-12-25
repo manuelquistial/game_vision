@@ -7,6 +7,10 @@ export default class FigureScene extends Phaser.Scene {
     }
 
     init(data){
+        this.production = data.production
+        this.source_path = data.source_path
+        this.id_users_tests = data.id_users_tests
+        
         this.maxColumns = data.maxColumns
         this.maxRows = data.maxRows
         this.size = data.size
@@ -25,10 +29,12 @@ export default class FigureScene extends Phaser.Scene {
         this.showMessageBox = data.showMessageBox
         this.postGameData = data.postGameData
 
+
         this.figureSelection = data.figureSelection
 
         //functions
         this.randomNumber = data.randomNumber
+        this.saveLocalPoints = data.saveLocalPoints
 
         this.finishScene = this.time.addEvent({delay: this.finishTime, callback: this.finish, args: [this], loop: false, paused: false})
     }
@@ -36,15 +42,10 @@ export default class FigureScene extends Phaser.Scene {
     preload(){
         this.reactiveConfig = {delay: this.speed, callback: this.updatePosition, args: [this], loop: true, paused: false}
         if(this.figureSelection == "figures"){
-            this.load.image('image_0', './img/apple.svg');
-            this.load.image('image_1', './img/circle.svg');
-            this.load.image('image_2', './img/house.svg');
-            this.load.image('image_3', './img/square.svg');
-
-            /*this.load.image('image_0', '../../assets/Test02MatrizV1/img/apple.svg');
-            this.load.image('image_1', '../../assets/Test02MatrizV1/img/circle.svg');
-            this.load.image('image_2', '../../assets/Test02MatrizV1/img/house.svg');
-            this.load.image('image_3', '../../assets/Test02MatrizV1/img/square.svg');*/
+            this.load.image('image_0', `${this.source_path}/img/apple.svg`);
+            this.load.image('image_1', `${this.source_path}/img/circle.svg`);
+            this.load.image('image_2', `${this.source_path}/img/house.svg`);
+            this.load.image('image_3', `${this.source_path}/img/square.svg`);
         }
     }
 
@@ -79,12 +80,15 @@ export default class FigureScene extends Phaser.Scene {
         this.fixationLight = this.add.circle(0, 0, this.fixationRadio, this.colorFixation);
           
         if(this.figureSelection == "letters" || this.figureSelection == "numbers" || this.figureSelection == "fix_letters"){
+
             this.figureFixation = this.add.text(0, 0, this.fixationFigure, {
                 fontFamily:'Arial',
                 color:'#000000',
                 align:'center',
               }).setFontSize(2*this.fixationRadio)
+
         }else if(this.figureSelection == "figures"){
+
             this.figureFixation = this.add.image(0, 0, this.fixationFigure)
             this.figureFixation.displayWidth = this.fixationRadio
             this.figureFixation.scaleY = this.figureFixation.scaleX;
@@ -98,27 +102,35 @@ export default class FigureScene extends Phaser.Scene {
         this.lights = this.add.circle(0, 0, this.radioLights, this.color);
 
         if(this.figureSelection == "letters"){
+
             this.figures = this.add.text(0, 0, this.randomLetter(), {
                 fontFamily:'Arial',
                 color:'#000000',
                 align:'center',
               }).setFontSize(2*this.radioLights)
+
         }else if(this.figureSelection == "numbers"){
+
             this.figures = this.add.text(0, 0, this.randomNumbers(), {
                 fontFamily:'Arial',
                 color:'#000000',
                 align:'center',
               }).setFontSize(2*this.radioLights)
+
         }else if(this.figureSelection == "fix_letters"){
+
             this.figures = this.add.text(0, 0, this.randomFixLetters(), {
                 fontFamily:'Arial',
                 color:'#000000',
                 align:'center',
               }).setFontSize(2*this.radioLights)
+
         }else if(this.figureSelection == "figures"){
+
             this.figures = this.add.image(0, 0, this.randomFigures())
             this.figures.displayWidth = this.radioLights
             this.figures.scaleY = this.figures.scaleX;
+
         }
 
         this.figures.setOrigin(0.5)
@@ -131,7 +143,17 @@ export default class FigureScene extends Phaser.Scene {
         if(this.timerProactive){
             this.timerProactive.remove()
         }
+
         this.timerReactive = this.time.addEvent(this.reactiveConfig)
+
+        let points = {
+            "time_reaction": 0,
+            "position_x": this.xLightPosition,
+            "position_y": this.yLightPosition,
+            "response": 2
+        }
+        this.postGameData(this, points)
+        this.saveLocalPoints(this, 'total_hits')
 
         this.lights.on('pointerdown', function () {
 
@@ -141,12 +163,17 @@ export default class FigureScene extends Phaser.Scene {
                 let figureCompare = null
 
                 if(this.figures.text ? true : false){
+
                     figureCompare = this.figureFixation.text == this.figures.text
+
                 }else{
+
                     figureCompare = this.figureFixation.texture == this.figures.texture
+
                 }
 
                 if(figureCompare){
+
                     this.successAudio ? this.successAudio.play() : null
                     let points = {
                         "time_reaction": timeLimitLight,
@@ -154,8 +181,12 @@ export default class FigureScene extends Phaser.Scene {
                         "position_y": this.yLightPosition,
                         "response": 1
                     }
-                    this.postGameData(points)
+                    this.postGameData(this, points)
+                    this.saveLocalPoints(this, 'on_time')
+                    this.saveLocalPoints(this, 'precision', timeLimitLight)
+
                 }else{
+
                     this.failureAudio ? this.failureAudio.play() : null
                     let points = {
                         "time_reaction": timeLimitLight,
@@ -163,7 +194,8 @@ export default class FigureScene extends Phaser.Scene {
                         "position_y": this.yLightPosition,
                         "response": 0
                     }
-                    this.postGameData(points)
+                    this.postGameData(this, points)
+                    this.saveLocalPoints(this, 'missed')
                 }
             }
             this.lights.visible = false
@@ -177,40 +209,58 @@ export default class FigureScene extends Phaser.Scene {
         this.yLightPosition = this.randomNumber(0, this.maxRows)
     }
 
-    updatePosition(argThis){
-        argThis.gameModeAction()
+    updatePosition(_this){
+        _this.gameModeAction()
 
-        if(argThis.figureSelection == "letters"){
-            argThis.figures.text = argThis.randomLetter()
-        }else if(argThis.figureSelection == "numbers"){
-            argThis.figures.text = argThis.randomNumbers()
-        }else if(argThis.figureSelection == "figures"){
-            argThis.figures.setTexture(argThis.randomFigures())
-        }else if(argThis.figureSelection == "fix_letters"){
-            argThis.figures.text = argThis.randomFixLetters()
+        if(_this.figureSelection == "letters"){
+            _this.figures.text = _this.randomLetter()
+        }else if(_this.figureSelection == "numbers"){
+            _this.figures.text = _this.randomNumbers()
+        }else if(_this.figureSelection == "figures"){
+            _this.figures.setTexture(_this.randomFigures())
+        }else if(_this.figureSelection == "fix_letters"){
+            _this.figures.text = _this.randomFixLetters()
         }
 
-        argThis.aGrid.placeAt(argThis.xLightPosition, argThis.yLightPosition, argThis.container);
+        let points = {
+            "time_reaction": 0,
+            "position_x": _this.xLightPosition,
+            "position_y": _this.yLightPosition,
+            "response": 2
+        }
+        _this.postGameData(_this, points)
+        _this.saveLocalPoints(_this, 'total_hits')
+
+        _this.aGrid.placeAt(_this.xLightPosition, _this.yLightPosition, _this.container);
     }
 
-    delayLight(argThis){
-        argThis.lights.visible = true
-        argThis.timerReactive.reset(argThis.reactiveConfig)
-        argThis.time.addEvent(argThis.timerReactive)
+    delayLight(_this){
+        _this.lights.visible = true
+        _this.timerReactive.reset(_this.reactiveConfig)
+        _this.time.addEvent(_this.timerReactive)
 
-        argThis.gameModeAction()
+        _this.gameModeAction()
 
-        if(argThis.figureSelection == "letters"){
-            argThis.figures.text = argThis.randomLetter()
-        }else if(argThis.figureSelection == "numbers"){
-            argThis.figures.text = argThis.randomNumbers()
-        }else if(argThis.figureSelection == "figures"){
-            argThis.figures.setTexture(argThis.randomFigures())
-        }else if(argThis.figureSelection == "fix_letters"){
-            argThis.figures.text = argThis.randomFixLetters()
+        if(_this.figureSelection == "letters"){
+            _this.figures.text = _this.randomLetter()
+        }else if(_this.figureSelection == "numbers"){
+            _this.figures.text = _this.randomNumbers()
+        }else if(_this.figureSelection == "figures"){
+            _this.figures.setTexture(_this.randomFigures())
+        }else if(_this.figureSelection == "fix_letters"){
+            _this.figures.text = _this.randomFixLetters()
         }
 
-        argThis.aGrid.placeAt(argThis.xLightPosition, argThis.yLightPosition, argThis.container);
+        let points = {
+            "time_reaction": 0,
+            "position_x": _this.xLightPosition,
+            "position_y": _this.yLightPosition,
+            "response": 2
+        }
+        _this.postGameData(_this, points)
+        _this.saveLocalPoints(_this, 'total_hits')
+
+        _this.aGrid.placeAt(_this.xLightPosition, _this.yLightPosition, _this.container);
     }
 
     // Function to generate random number 
@@ -231,10 +281,10 @@ export default class FigureScene extends Phaser.Scene {
         return this.randomNumber(0, 10)
     }
 
-    finish(argThis){
-        argThis.lights.destroy()
-        argThis.timerReactive ? argThis.timerReactive.paused = true : null
-        argThis.timerDelayLight ? argThis.timerDelayLight.paused = true : null
-        argThis.showMessageBox(window.languaje.message_1, argThis.aGrid.w * .3, argThis.aGrid.h * .3);
+    finish(_this){
+        _this.lights.destroy()
+        _this.timerReactive ? _this.timerReactive.paused = true : null
+        _this.timerDelayLight ? _this.timerDelayLight.paused = true : null
+        _this.showMessageBox(_this, _this.aGrid.w * .3, _this.aGrid.h * .6);
     }
 }

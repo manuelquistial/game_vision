@@ -7,7 +7,9 @@ export default class GoNoGoScene extends Phaser.Scene {
     }
 
     init(data){
-        
+        this.production = data.production
+        this.id_users_tests = data.id_users_tests
+
         this.maxColumns = data.maxColumns
         this.maxRows = data.maxRows
         this.size = data.size
@@ -22,6 +24,7 @@ export default class GoNoGoScene extends Phaser.Scene {
 
         //functions
         this.randomNumber = data.randomNumber
+        this.saveLocalPoints = data.saveLocalPoints
 
         this.finishScene = this.time.addEvent({delay: this.finishTime, callback: this.finish, args: [this], loop: false, paused: false})
     }
@@ -66,8 +69,17 @@ export default class GoNoGoScene extends Phaser.Scene {
 
         this.aGrid.placeAt(this.xLightPosition, this.yLightPosition, this.light);
 
+        let points = {
+            "time_reaction": 0,
+            "position_x": this.xLightPosition,
+            "position_y": this.yLightPosition,
+            "response": 2
+        }
+
+        this.postGameData(this, points)
+        this.saveLocalPoints(this, 'total_hits')
+
         this.light.on('pointerdown', function () {
-            console.log("hola")
             this.light.visible = false
             let timeLimitLight = this.timerReactive.getElapsed()
             this.timerReactive.reset(this.reactiveConfig)
@@ -82,11 +94,20 @@ export default class GoNoGoScene extends Phaser.Scene {
             if(this.light.fillColor == this.color){
                 this.successAudio ? this.successAudio.play() : null
                 points.response = 1
+                this.saveLocalPoints(this, 'on_time')
+                this.saveLocalPoints(this, 'precision', timeLimitLight)
+
             }else{
                 this.failureAudio ? this.failureAudio.play() : null
                 points.response = 0
+                this.saveLocalPoints(this, 'missed')
             }
-            //argThis.postGameData(points)
+            this.postGameData(this, points)
+            
+            points.time_reaction = 0,
+            points.response = 2
+            this.postGameData(this, points)
+            this.saveLocalPoints(this, 'total_hits')
 
             this.timerDelayLight = this.time.addEvent({delay: this.timeDelay, callback: this.delayLight, args: [this], loop: false, paused: false})
         }, this);
@@ -99,26 +120,27 @@ export default class GoNoGoScene extends Phaser.Scene {
         this.yLightPosition = this.randomNumber(0, this.maxRows)
     }
 
-    updatePosition(argThis){
-        let timeLimitLight = argThis.timerReactive.getElapsed()
+    updatePosition(_this){
+        let timeLimitLight = _this.timerReactive.getElapsed()
         let points = {
-            "time_reaction": timeLimitLight,
-            "position_x": argThis.xLightPosition,
-            "position_y": argThis.yLightPosition,
+            "time_reaction": 0,
+            "position_x": _this.xLightPosition,
+            "position_y": _this.yLightPosition,
             "response": 2
         }
-        //argThis.postGameData(points)
+        _this.postGameData(_this, points)
+        _this.saveLocalPoints(_this, 'total_hits')
 
-        argThis.gameModeActionLight()
-        argThis.light.setFillStyle(argThis.randomColors(), 1)
-        argThis.aGrid.placeAt(argThis.xLightPosition, argThis.yLightPosition, argThis.light);
+        _this.gameModeActionLight()
+        _this.light.setFillStyle(_this.randomColors(), 1)
+        _this.aGrid.placeAt(_this.xLightPosition, _this.yLightPosition, _this.light);
     }
 
-    delayLight(argThis){
-        argThis.light.visible = true
-        argThis.gameModeActionLight()
-        argThis.light.setFillStyle(argThis.randomColors(), 1)
-        argThis.aGrid.placeAt(argThis.xLightPosition, argThis.yLightPosition, argThis.light);
+    delayLight(_this){
+        _this.light.visible = true
+        _this.gameModeActionLight()
+        _this.light.setFillStyle(_this.randomColors(), 1)
+        _this.aGrid.placeAt(_this.xLightPosition, _this.yLightPosition, _this.light);
     }
 
     randomColors(){
@@ -130,10 +152,10 @@ export default class GoNoGoScene extends Phaser.Scene {
         return randomNumber + exclude_array.sort((a, b) => a - b).reduce((acc, element) => { return randomNumber >= element - acc ? acc + 1 : acc}, 0);
     }*/
 
-    finish(argThis){
-        argThis.light.destroy()
-        argThis.timerReactive ? argThis.timerReactive.paused = true : null
-        argThis.timerDelayLight ? argThis.timerDelayLight.paused = true : null
-        argThis.showMessageBox(window.languaje.message_1, argThis.aGrid.w * .3, argThis.aGrid.h * .3);
+    finish(_this){
+        _this.light.destroy()
+        _this.timerReactive ? _this.timerReactive.paused = true : null
+        _this.timerDelayLight ? _this.timerDelayLight.paused = true : null
+        _this.showMessageBox(_this, _this.aGrid.w * .3, _this.aGrid.h * .6);
     }
 }

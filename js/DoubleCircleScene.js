@@ -7,7 +7,9 @@ export default class DoubleCircleScene extends Phaser.Scene {
     }
 
     init(data){
-        
+        this.production = data.production
+        this.id_users_tests = data.id_users_tests
+
         this.maxColumns = data.maxColumns
         this.maxRows = data.maxRows
         this.size = data.size
@@ -79,19 +81,38 @@ export default class DoubleCircleScene extends Phaser.Scene {
         
         this.lightOne.on('pointerup', function () {
             this.timeLimitLightOne = this.timerProactive.getElapsed()
+            if(this.timeLimitLightOne != this.timeLimitLightTwo){
+                let points = {
+                    "time_reaction": 0,
+                    "position_x": this.xLightPosition,
+                    "position_y": this.yLightPosition,
+                    "positionb_x": this.lightTwoPositionX,
+                    "positionb_y": this.lightTwoPositionY,
+                    "response": 0
+                }
+                this.postGameData(this, points)
+                this.saveLocalPoints(this, 'missed')
+            }
         }, this);
 
         this.lightTwo.on('pointerup', function () {
             this.timeLimitLightTwo = this.timerProactive.getElapsed()
+            if(this.timeLimitLightOne != this.timeLimitLightTwo){
+                let points = {
+                    "time_reaction": 0,
+                    "position_x": this.xLightPosition,
+                    "position_y": this.yLightPosition,
+                    "positionb_x": this.lightTwoPositionX,
+                    "positionb_y": this.lightTwoPositionY,
+                    "response": 0
+                }
+                this.postGameData(this, points)
+                this.saveLocalPoints(this, 'missed')
+            }
         }, this);
-
-        this.one = this.add.text(100, 100, 'Hello World', { fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif' });
-        this.two = this.add.text(100, 150, 'Hello World', { fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif' });
     }
 
     update(){
-        this.one.text = this.timeLimitLightOne
-        this.two.text = this.timeLimitLightTwo
         if(this.timeLimitLightOne == this.timeLimitLightTwo){
             this.lightOne.visible = false
             this.lightTwo.visible = false
@@ -104,7 +125,15 @@ export default class DoubleCircleScene extends Phaser.Scene {
                 "positionb_y": this.lightTwoPositionY,
                 "response": 1
             }
-            //this.postGameData(points)
+            this.postGameData(this, points)
+            this.saveLocalPoints(this, 'on_time')
+            this.saveLocalPoints(this, 'precision', timeLimitLightOne)
+
+            points.time_reaction = 0
+            points.response = 2
+            this.postGameData(this, points)
+            this.saveLocalPoints(this, 'total_hits')
+
             this.timeLimitLightOne = -2
             this.timeLimitLightTwo = -1
             
@@ -155,27 +184,27 @@ export default class DoubleCircleScene extends Phaser.Scene {
         this.lightTwoPositionY = this.yLightPosition
     }
 
-    delayLight(argThis){
-        argThis.lightOne.visible = true
-        argThis.lightTwo.visible = true
+    delayLight(_this){
+        _this.lightOne.visible = true
+        _this.lightTwo.visible = true
 
-        argThis.timerProactive.reset(argThis.proactiveConfig)
-        argThis.time.addEvent(argThis.timerProactive)
+        _this.timerProactive.reset(_this.proactiveConfig)
+        _this.time.addEvent(_this.timerProactive)
 
-        argThis.gameModeActionLightOne()
-        argThis.aGrid.placeAt(argThis.xLightPosition, argThis.yLightPosition, argThis.lightOne);
+        _this.gameModeActionLightOne()
+        _this.aGrid.placeAt(_this.xLightPosition, _this.yLightPosition, _this.lightOne);
 
-        argThis.gameModeActionLightTwo()
-        argThis.lightTwoPositionX = argThis.xLightPosition
-        argThis.lightTwoPositionY = argThis.yLightPosition
-        argThis.aGrid.placeAt(argThis.xLightPosition, argThis.yLightPosition, argThis.lightTwo);
+        _this.gameModeActionLightTwo()
+        _this.lightTwoPositionX = _this.xLightPosition
+        _this.lightTwoPositionY = _this.yLightPosition
+        _this.aGrid.placeAt(_this.xLightPosition, _this.yLightPosition, _this.lightTwo);
     }
 
-    finish(argThis){
-        argThis.lightOne.destroy()
-        argThis.lightTwo.destroy()
-        argThis.timerProactive ? argThis.timerProactive.paused = true : null
-        argThis.timerDelayLight ? argThis.timerDelayLight.paused = true : null
-        argThis.showMessageBox(window.languaje.message_1, argThis.aGrid.w * .3, argThis.aGrid.h * .3);
+    finish(_this){
+        _this.lightOne.destroy()
+        _this.lightTwo.destroy()
+        _this.timerProactive ? _this.timerProactive.paused = true : null
+        _this.timerDelayLight ? _this.timerDelayLight.paused = true : null
+        _this.showMessageBox(_this, _this.aGrid.w * .3, _this.aGrid.h * .6);
     }
 }

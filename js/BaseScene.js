@@ -12,6 +12,9 @@ export default class BaseScene extends Phaser.Scene {
     }
 
     init(data){
+        this.production = data.production
+        this.id_users_tests = data.id_users_tests
+
         this.gameMode = data.gameMode
         this.maxColumns = data.maxColumns
         this.maxRows = data.maxRows
@@ -34,13 +37,14 @@ export default class BaseScene extends Phaser.Scene {
 
         //functions
         this.randomNumber = data.randomNumber
+        this.saveLocalPoints = data.saveLocalPoints
 
         this.finishScene = this.time.addEvent({delay: this.finishTime, callback: this.finish, args: [this], loop: false, paused: false})
     }
 
     preload(){
         this.reactiveConfig = {delay: this.speed, callback: this.updatePosition, args: [this], loop: true, paused: false}
-        this.proactiveConfig = {delay: this.speed, callback: this.failedByTime, args: [this], loop: true, paused: false}
+        this.proactiveConfig = {delay: this.speed, loop: false, paused: false}
     }
 
     create() {
@@ -104,13 +108,21 @@ export default class BaseScene extends Phaser.Scene {
             this.timerProactive = this.time.addEvent(this.proactiveConfig)
         }
 
+        let points = {
+            "time_reaction": 0,
+            "position_x": this.xLightPosition,
+            "position_y": this.yLightPosition,
+            "response": 2
+        }
+        this.postGameData(this, points)
+        this.saveLocalPoints(this, 'total_hits')
+
         this.lights.on('pointerdown', function () {
             
             if(this.gameSelected){
                 let timeLimitLight = this.timerReactive.getElapsed()
+
                 if(timeLimitLight < this.speed){
-                    this.timerReactive.reset(this.reactiveConfig)
-                    this.time.addEvent(this.timerReactive)
                     this.successAudio ? this.successAudio.play() : null
                     let points = {
                         "time_reaction": timeLimitLight,
@@ -118,14 +130,16 @@ export default class BaseScene extends Phaser.Scene {
                         "position_y": this.yLightPosition,
                         "response": 1
                     }
-                    this.postGameData(points)
+                    this.postGameData(this, points)
+                    
+                    this.saveLocalPoints(this, 'on_time')
+                    this.saveLocalPoints(this, 'precision', timeLimitLight)
                 }
+
             }else{
                 let timeLimitLight = this.timerProactive.getElapsed()
     
                 if(timeLimitLight < this.speed){
-                    this.timerProactive.reset(this.proactiveConfig)
-                    this.time.addEvent(this.timerProactive)
                     this.successAudio ? this.successAudio.play() : null
                     let points = {
                         "time_reaction": timeLimitLight,
@@ -133,8 +147,23 @@ export default class BaseScene extends Phaser.Scene {
                         "position_y": this.yLightPosition,
                         "response": 1
                     }
-                    this.postGameData(points)
-                } 
+                    this.postGameData(this, points)
+
+                    this.saveLocalPoints(this, 'on_time', )
+                    this.saveLocalPoints(this, 'precision', timeLimitLight)
+
+                }else{
+                    this.failureAudio ? this.failureAudio.play() : null
+                    
+                    let points = {
+                        "time_reaction": 0,
+                        "position_x": this.xLightPosition,
+                        "position_y": this.yLightPosition,
+                        "response": 0
+                    }
+                    this.postGameData(this, points)
+                    this.saveLocalPoints(this, 'missed')
+                }
             }
 
             this.lights.visible = false
@@ -195,60 +224,58 @@ export default class BaseScene extends Phaser.Scene {
         }
     }
 
-    updatePosition(argThis){
-        argThis.failureAudio ? argThis.failureAudio.play() : null
-        let timeLimitLight = argThis.timerReactive.getElapsed()
+    updatePosition(_this){
+        _this.failureAudio ? _this.failureAudio.play() : null
+        let timeLimitLight = _this.timerReactive.getElapsed()
         let points = {
-            "time_reaction": timeLimitLight,
-            "position_x": argThis.xLightPosition,
-            "position_y": argThis.yLightPosition,
-            "response": 0
+            "time_reaction": 0,
+            "position_x": _this.xLightPosition,
+            "position_y": _this.yLightPosition,
+            "response": 2
         }
-        argThis.postGameData(points)
+        _this.postGameData(_this, points)
+        _this.saveLocalPoints(_this, 'total_hits')
 
-        argThis.gameModeAction()
-        argThis.aGrid.placeAt(argThis.xLightPosition, argThis.yLightPosition, argThis.lights);
+        _this.gameModeAction()
+        _this.aGrid.placeAt(_this.xLightPosition, _this.yLightPosition, _this.lights);
     }
 
-    failedByTime(argThis){
-        if(argThis.timerReactive){
-            let timeLimitLight = argThis.timerReactive.getElapsed()
-            let points = {
-                "time_reaction": timeLimitLight,
-                "position_x": argThis.xLightPosition,
-                "position_y": argThis.yLightPosition,
-                "response": 0
-            }
-            argThis.postGameData(points)
-        }
-    }
-
-    fixLight(argThis){
-        if(argThis.fixationLight.visible){
-            argThis.fixationLight.setVisible(false)
+    fixLight(_this){
+        if(_this.fixationLight.visible){
+            _this.fixationLight.setVisible(false)
         }else{
-            argThis.fixationLight.setVisible(true)
+            _this.fixationLight.setVisible(true)
         }
     }
 
-    delayLight(argThis){
-        argThis.lights.visible = true
-        if(this.gameSelected){
-            argThis.timerReactive.reset(argThis.reactiveConfig)
-            argThis.time.addEvent(argThis.timerReactive)
+    delayLight(_this){
+        _this.lights.visible = true
+        if(_this.gameSelected){
+            _this.timerReactive.reset(_this.reactiveConfig)
+            _this.time.addEvent(_this.timerReactive)
         }else{
-            argThis.timerProactive.reset(argThis.proactiveConfig)
-            argThis.time.addEvent(argThis.timerProactive)
+            _this.timerProactive.reset(_this.proactiveConfig)
+            _this.time.addEvent(_this.timerProactive)
         }
-        argThis.gameModeAction()
-        argThis.aGrid.placeAt(argThis.xLightPosition, argThis.yLightPosition, argThis.lights);
+
+        let points = {
+            "time_reaction": 0,
+            "position_x": _this.xLightPosition,
+            "position_y": _this.yLightPosition,
+            "response": 2
+        }
+        _this.postGameData(_this, points)
+        _this.saveLocalPoints(_this, 'total_hits')
+
+        _this.gameModeAction()
+        _this.aGrid.placeAt(_this.xLightPosition, _this.yLightPosition, _this.lights);
     }
 
-    finish(argThis){
-        argThis.lights.destroy()
-        argThis.timerProactive ? argThis.timerProactive.paused = true : null
-        argThis.timerReactive ? argThis.timerReactive.paused = true : null
-        argThis.timerDelayLight ? argThis.timerDelayLight.paused = true : null
-        argThis.showMessageBox(window.languaje.message_1, argThis.aGrid.w * .3, argThis.aGrid.h * .3);
+    finish(_this){
+        _this.lights.destroy()
+        _this.timerProactive ? _this.timerProactive.paused = true : null
+        _this.timerReactive ? _this.timerReactive.paused = true : null
+        _this.timerDelayLight ? _this.timerDelayLight.paused = true : null
+        _this.showMessageBox(_this, _this.aGrid.w * .3, _this.aGrid.h * .6);
     }
 }
