@@ -199,19 +199,21 @@ export default class FigureScene extends Phaser.Scene {
         }, this);
 
         this.input.on('pointerdown', (data) => {
-            if(this.clickOnLight){
-                this.clickOnLight = false
-            }else{
-                this.failureAudio ? this.failureAudio.play() : null
-                let timeLimitLight = this.timerReactive.getElapsed()
-                let points = {
-                    "time_reaction": timeLimitLight,
-                    "position_x": Math.trunc(data.downX / this.aGrid.cw),
-                    "position_y": Math.trunc(data.downY / this.aGrid.ch),
-                    "response": 2
+            if(!this.endGame){
+                if(this.clickOnLight){
+                    this.clickOnLight = false
+                }else{
+                    this.failureAudio ? this.failureAudio.play() : null
+                    let timeLimitLight = this.timerReactive.getElapsed()
+                    let points = {
+                        "time_reaction": timeLimitLight,
+                        "position_x": Math.trunc(data.downX / this.aGrid.cw),
+                        "position_y": Math.trunc(data.downY / this.aGrid.ch),
+                        "response": 2
+                    }
+                    this.postGameData(this, points)
+                    this.saveLocalPoints(this, 'failure')
                 }
-                this.postGameData(this, points)
-                this.saveLocalPoints(this, 'failure')
             }
         });
         
@@ -296,6 +298,7 @@ export default class FigureScene extends Phaser.Scene {
 
     finish(_this){
         _this.lights.destroy()
+        _this.endGame = true
         _this.timerReactive ? _this.timerReactive.paused = true : null
         _this.timerDelayLight ? _this.timerDelayLight.paused = true : null
         _this.showMessageBox(_this, _this.aGrid.w * .3, _this.aGrid.h * .6);
