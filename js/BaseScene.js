@@ -55,7 +55,7 @@ export default class BaseScene extends Phaser.Scene {
         }
         
         this.aGrid = new AlignGrid(gridConfig);
-        //this.aGrid.showNumbers();
+        this.aGrid.showNumbers();
 
         if(this.aGrid.ch / 2 > this.aGrid.cw / 2){
             this.radioLights = this.aGrid.cw / 2
@@ -112,12 +112,13 @@ export default class BaseScene extends Phaser.Scene {
             "time_reaction": 0,
             "position_x": this.xLightPosition,
             "position_y": this.yLightPosition,
-            "response": 2
+            "response": 0
         }
         this.postGameData(this, points)
         this.saveLocalPoints(this, 'total_hits')
 
         this.lights.on('pointerdown', function () {
+            this.clickOnLight = true
             
             if(this.gameSelected){
                 let timeLimitLight = this.timerReactive.getElapsed()
@@ -154,21 +155,31 @@ export default class BaseScene extends Phaser.Scene {
 
                 }else{
                     this.failureAudio ? this.failureAudio.play() : null
-                    
-                    let points = {
-                        "time_reaction": 0,
-                        "position_x": this.xLightPosition,
-                        "position_y": this.yLightPosition,
-                        "response": 0
-                    }
-                    this.postGameData(this, points)
-                    this.saveLocalPoints(this, 'missed')
                 }
             }
 
             this.lights.visible = false
             this.timerDelayLight = this.time.addEvent({delay: this.timeDelay, callback: this.delayLight, args: [this], loop: false, paused: false})
         }, this);
+
+        if(this.gameSelected){
+            this.input.on('pointerdown', (data) => {
+                if(this.clickOnLight){
+                    this.clickOnLight = false
+                }else{
+                    this.failureAudio ? this.failureAudio.play() : null
+                    let timeLimitLight = this.timerReactive.getElapsed()
+                    let points = {
+                        "time_reaction": timeLimitLight,
+                        "position_x": Math.trunc(data.downX / this.aGrid.cw),
+                        "position_y": Math.trunc(data.downY / this.aGrid.ch),
+                        "response": 2
+                    }
+                    this.postGameData(this, points)
+                    this.saveLocalPoints(this, 'failure')
+                }
+            });
+        }
     }
 
     update() {
@@ -225,19 +236,21 @@ export default class BaseScene extends Phaser.Scene {
     }
 
     updatePosition(_this){
-        _this.failureAudio ? _this.failureAudio.play() : null
+
+        //_this.failureAudio ? _this.failureAudio.play() : null
         let timeLimitLight = _this.timerReactive.getElapsed()
         let points = {
             "time_reaction": 0,
             "position_x": _this.xLightPosition,
             "position_y": _this.yLightPosition,
-            "response": 2
+            "response": 0
         }
         _this.postGameData(_this, points)
         _this.saveLocalPoints(_this, 'total_hits')
 
         _this.gameModeAction()
         _this.aGrid.placeAt(_this.xLightPosition, _this.yLightPosition, _this.lights);
+ 
     }
 
     fixLight(_this){
@@ -256,16 +269,16 @@ export default class BaseScene extends Phaser.Scene {
         }else{
             _this.timerProactive.reset(_this.proactiveConfig)
             _this.time.addEvent(_this.timerProactive)
-        }
 
-        let points = {
-            "time_reaction": 0,
-            "position_x": _this.xLightPosition,
-            "position_y": _this.yLightPosition,
-            "response": 2
+            let points = {
+                "time_reaction": 0,
+                "position_x": _this.xLightPosition,
+                "position_y": _this.yLightPosition,
+                "response": 0
+            }
+            _this.postGameData(_this, points)
+            _this.saveLocalPoints(_this, 'total_hits')
         }
-        _this.postGameData(_this, points)
-        _this.saveLocalPoints(_this, 'total_hits')
 
         _this.gameModeAction()
         _this.aGrid.placeAt(_this.xLightPosition, _this.yLightPosition, _this.lights);

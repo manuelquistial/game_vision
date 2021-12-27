@@ -9,6 +9,7 @@ export default class GoNoGoScene extends Phaser.Scene {
     init(data){
         this.production = data.production
         this.id_users_tests = data.id_users_tests
+        this.gameSelected = true
 
         this.maxColumns = data.maxColumns
         this.maxRows = data.maxRows
@@ -73,13 +74,15 @@ export default class GoNoGoScene extends Phaser.Scene {
             "time_reaction": 0,
             "position_x": this.xLightPosition,
             "position_y": this.yLightPosition,
-            "response": 2
+            "response": 0
         }
 
         this.postGameData(this, points)
         this.saveLocalPoints(this, 'total_hits')
 
         this.light.on('pointerdown', function () {
+            this.clickOnLight = true
+
             this.light.visible = false
             let timeLimitLight = this.timerReactive.getElapsed()
             this.timerReactive.reset(this.reactiveConfig)
@@ -99,18 +102,34 @@ export default class GoNoGoScene extends Phaser.Scene {
 
             }else{
                 this.failureAudio ? this.failureAudio.play() : null
-                points.response = 0
-                this.saveLocalPoints(this, 'missed')
+                points.response = 2
             }
             this.postGameData(this, points)
-            
+
             points.time_reaction = 0,
-            points.response = 2
+            points.response = 0
             this.postGameData(this, points)
             this.saveLocalPoints(this, 'total_hits')
 
             this.timerDelayLight = this.time.addEvent({delay: this.timeDelay, callback: this.delayLight, args: [this], loop: false, paused: false})
         }, this);
+
+        this.input.on('pointerdown', (data) => {
+            if(this.clickOnLight){
+                this.clickOnLight = false
+            }else{
+                this.failureAudio ? this.failureAudio.play() : null
+                let timeLimitLight = this.timerReactive.getElapsed()
+                let points = {
+                    "time_reaction": timeLimitLight,
+                    "position_x": Math.trunc(data.downX / this.aGrid.cw),
+                    "position_y": Math.trunc(data.downY / this.aGrid.ch),
+                    "response": 2
+                }
+                this.postGameData(this, points)
+                this.saveLocalPoints(this, 'failure')
+            }
+        });
 
         this.timerReactive = this.time.addEvent(this.reactiveConfig)
     }
@@ -121,12 +140,12 @@ export default class GoNoGoScene extends Phaser.Scene {
     }
 
     updatePosition(_this){
-        let timeLimitLight = _this.timerReactive.getElapsed()
+        
         let points = {
             "time_reaction": 0,
             "position_x": _this.xLightPosition,
             "position_y": _this.yLightPosition,
-            "response": 2
+            "response": 0
         }
         _this.postGameData(_this, points)
         _this.saveLocalPoints(_this, 'total_hits')

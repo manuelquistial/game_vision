@@ -37,21 +37,21 @@ export default class PreloadMain extends Phaser.Scene {
             this.id_users_tests = window.parameters.id_users_tests
 
         }else{
-            this.gameType = 2 // From 1 to 4, this is the game to choice
+            this.gameType = 1 // From 1 to 4, this is the game to choice
             this.gameMode = 1 //
             this.maxColumns = 10
             this.maxRows = 6
-            this.size = 90;
+            this.size = 120;
             this.color = 0xf00000
             this.colorFixation = 0xffffff
             this.gameSelected = true //true: reactive, false: proactive
-            this.speed = 1000 // ms
-            this.timeDelay = 10 // ms
+            this.speed = 500 // ms
+            this.timeDelay = 500 // ms
             this.timeFix = 300 // ms
             this.fixationFigure = "A" //here select letter, ex, image_# : # 0,1,2,3
             this.fixationEnable = "blink"//on, off, blink
             this.percentageFixation = 0.6
-            this.finishTime = 5000
+            this.finishTime = 2000
             this.audio = true
             this.doubleMode = 5 //1 diagonal right, 2 left, 3 horizontal, 4 vertical, 5 aleatorio
             this.failureColorCircle = 0xefd000 
@@ -82,6 +82,7 @@ export default class PreloadMain extends Phaser.Scene {
             total_hits: 0,
             on_time: 0,
             missed: 0,
+            failure: 0,
             precision: 0
         }
 
@@ -123,7 +124,13 @@ export default class PreloadMain extends Phaser.Scene {
 
     // Function to generate random number 
     randomNumber(min_val, max_val) { 
-        return Math.trunc(Math.random() * (max_val - min_val) + min_val);
+
+        let exclude_array = [(localStorage.getItem('noRepeat') == null ? 0 : localStorage.getItem('no_repeat'))]
+        const randomNumber = Math.floor(Math.random() * (max_val - min_val + 1 - exclude_array.length)) + min_val;
+        let number = randomNumber + exclude_array.sort((a, b) => a - b).reduce((acc, element) => { return randomNumber >= element - acc ? acc + 1 : acc}, 0)
+        localStorage.setItem('no_repeat', number)
+        return number
+        //return Math.trunc(Math.random() * (max_val - min_val) + min_val);
     } 
 
     postGameData(_this, points){
@@ -153,6 +160,7 @@ export default class PreloadMain extends Phaser.Scene {
             this.totalHitsMessage = window.languaje.endBtn
             this.onTimeMessage = window.languaje.endBtn
             this.missedMessage = window.languaje.endBtn
+            this.failureMessage = window.lenguaje.failure
             this.precisionMessage = window.languaje.endBtn
         }else{
             this.titleMessage = "Score Test"
@@ -161,6 +169,7 @@ export default class PreloadMain extends Phaser.Scene {
             this.totalHitsMessage = "Total Hits:"
             this.onTimeMessage = "On Time:"
             this.missedMessage = "Missed:"
+            this.failureMessage = "Failure:"
             this.precisionMessage = "Precision:"
         }
 
@@ -168,14 +177,18 @@ export default class PreloadMain extends Phaser.Scene {
         this.total_hits = points_user.total_hits
         this.missed = points_user.missed
 
-        /*if(this.gameSelected){
-            this.missed = points_user.total_hits - points_user.on_time
-        }*/
+        this.failure = this.total_hits - points_user.on_time
         
+        if(_this.gameSelected){
+            this.missed = this.failure
+            this.failure = points_user.failure
+        }
+
         this.totalHitsMessage = this.totalHitsMessage + ' ' + this.total_hits
         this.onTimeMessage = this.onTimeMessage + ' ' + points_user.on_time
         this.missedMessage = this.missedMessage + ' ' + this.missed
-        this.precisionMessage = this.precisionMessage + ' ' + points_user.precision == 0 ? 0 : points_user.precision / points_user.on_time
+        this.failureMessage = this.failureMessage + ' ' + this.failure
+        this.precisionMessage = this.precisionMessage + ' ' + (points_user.precision == 0 ? 0 : points_user.precision / points_user.on_time)
 
         //just in case the message box already exists
         //destroy it
@@ -202,9 +215,16 @@ export default class PreloadMain extends Phaser.Scene {
         let on_time = this.add.text(0, 0, this.onTimeMessage)
             .setStyle({ fontFamily: 'Arial', backgroundColor: '#111' });
 
-        let missed = this.add.text(0, 0, this.missedMessage)
-            .setStyle({ fontFamily: 'Arial', backgroundColor: '#111' });
+            
+        let missed = null
+        if(this.gameSelected){
+            missed = this.add.text(0, 0, this.missedMessage)
+                .setStyle({ fontFamily: 'Arial', backgroundColor: '#111' });
+        }
 
+        let failure = this.add.text(0, 0, this.failureMessage)
+            .setStyle({ fontFamily: 'Arial', backgroundColor: '#111' });
+        
         let precision = this.add.text(0, 0, this.precisionMessage)
             .setStyle({ fontFamily: 'Arial', backgroundColor: '#111' });
 
@@ -227,7 +247,10 @@ export default class PreloadMain extends Phaser.Scene {
         msgBox.add(test_time)
         msgBox.add(total_hints)
         msgBox.add(on_time)
-        msgBox.add(missed)
+        if(_this.gameSelected){
+            msgBox.add(missed)
+        }
+        msgBox.add(failure)
         msgBox.add(precision)
         msgBox.add(button)
         //
@@ -243,23 +266,28 @@ export default class PreloadMain extends Phaser.Scene {
 
 
         test_time.x = this.aGrid.w  / 2 ;
-        test_time.y = (this.aGrid.h  / 2) - 60;
+        test_time.y = (this.aGrid.h  / 2) - 70;
 
 
         total_hints.x = this.aGrid.w  / 2 ;
-        total_hints.y = (this.aGrid.h  / 2) - 30;
+        total_hints.y = (this.aGrid.h  / 2) - 40;
  
 
         on_time.x = this.aGrid.w  / 2 ;
-        on_time.y = (this.aGrid.h  / 2) ;
+        on_time.y = (this.aGrid.h  / 2) - 10;
 
 
-        missed.x = this.aGrid.w  / 2 ;
-        missed.y = (this.aGrid.h  / 2) + 30;
+        if(_this.gameSelected){
+            missed.x = this.aGrid.w  / 2 ;
+            missed.y = (this.aGrid.h  / 2) + 20;
+        }
+        
+        failure.x = this.aGrid.w  / 2 ;
+        failure.y = (this.aGrid.h  / 2) + (_this.gameSelected ? 50 : 20)
 
-
+    
         precision.x = this.aGrid.w  / 2 ;
-        precision.y = (this.aGrid.h  / 2) + 60;
+        precision.y = (this.aGrid.h  / 2) + (_this.gameSelected ? 80 : 50)
 
 
         button.x = this.aGrid.w  / 2 ;

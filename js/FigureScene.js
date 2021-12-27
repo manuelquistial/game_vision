@@ -10,6 +10,7 @@ export default class FigureScene extends Phaser.Scene {
         this.production = data.production
         this.source_path = data.source_path
         this.id_users_tests = data.id_users_tests
+        this.gameSelected = true
         
         this.maxColumns = data.maxColumns
         this.maxRows = data.maxRows
@@ -150,12 +151,14 @@ export default class FigureScene extends Phaser.Scene {
             "time_reaction": 0,
             "position_x": this.xLightPosition,
             "position_y": this.yLightPosition,
-            "response": 2
+            "response": 0
         }
         this.postGameData(this, points)
         this.saveLocalPoints(this, 'total_hits')
 
         this.lights.on('pointerdown', function () {
+
+            this.clickOnLight = true
 
             let timeLimitLight = this.timerReactive.getElapsed()
 
@@ -188,20 +191,30 @@ export default class FigureScene extends Phaser.Scene {
                 }else{
 
                     this.failureAudio ? this.failureAudio.play() : null
-                    let points = {
-                        "time_reaction": timeLimitLight,
-                        "position_x": this.xLightPosition,
-                        "position_y": this.yLightPosition,
-                        "response": 0
-                    }
-                    this.postGameData(this, points)
-                    this.saveLocalPoints(this, 'missed')
                 }
             }
             this.lights.visible = false
             this.timerDelayLight = this.time.addEvent({delay: this.timeDelay, callback: this.delayLight, args: [this], loop: false, paused: false})
 
         }, this);
+
+        this.input.on('pointerdown', (data) => {
+            if(this.clickOnLight){
+                this.clickOnLight = false
+            }else{
+                this.failureAudio ? this.failureAudio.play() : null
+                let timeLimitLight = this.timerReactive.getElapsed()
+                let points = {
+                    "time_reaction": timeLimitLight,
+                    "position_x": Math.trunc(data.downX / this.aGrid.cw),
+                    "position_y": Math.trunc(data.downY / this.aGrid.ch),
+                    "response": 2
+                }
+                this.postGameData(this, points)
+                this.saveLocalPoints(this, 'failure')
+            }
+        });
+        
     }
 
     gameModeAction(){
@@ -226,7 +239,7 @@ export default class FigureScene extends Phaser.Scene {
             "time_reaction": 0,
             "position_x": _this.xLightPosition,
             "position_y": _this.yLightPosition,
-            "response": 2
+            "response": 0
         }
         _this.postGameData(_this, points)
         _this.saveLocalPoints(_this, 'total_hits')
@@ -251,14 +264,14 @@ export default class FigureScene extends Phaser.Scene {
             _this.figures.text = _this.randomFixLetters()
         }
 
-        let points = {
+        /*let points = {
             "time_reaction": 0,
             "position_x": _this.xLightPosition,
             "position_y": _this.yLightPosition,
             "response": 2
         }
         _this.postGameData(_this, points)
-        _this.saveLocalPoints(_this, 'total_hits')
+        _this.saveLocalPoints(_this, 'total_hits')*/
 
         _this.aGrid.placeAt(_this.xLightPosition, _this.yLightPosition, _this.container);
     }

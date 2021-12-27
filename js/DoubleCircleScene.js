@@ -88,10 +88,10 @@ export default class DoubleCircleScene extends Phaser.Scene {
                     "position_y": this.yLightPosition,
                     "positionb_x": this.lightTwoPositionX,
                     "positionb_y": this.lightTwoPositionY,
-                    "response": 0
+                    "response": 2
                 }
                 this.postGameData(this, points)
-                this.saveLocalPoints(this, 'missed')
+                this.saveLocalPoints(this, 'failure')
             }
         }, this);
 
@@ -104,10 +104,10 @@ export default class DoubleCircleScene extends Phaser.Scene {
                     "position_y": this.yLightPosition,
                     "positionb_x": this.lightTwoPositionX,
                     "positionb_y": this.lightTwoPositionY,
-                    "response": 0
+                    "response": 2
                 }
                 this.postGameData(this, points)
-                this.saveLocalPoints(this, 'missed')
+                this.saveLocalPoints(this, 'failure')
             }
         }, this);
     }
@@ -130,7 +130,7 @@ export default class DoubleCircleScene extends Phaser.Scene {
             this.saveLocalPoints(this, 'precision', timeLimitLightOne)
 
             points.time_reaction = 0
-            points.response = 2
+            points.response = 0
             this.postGameData(this, points)
             this.saveLocalPoints(this, 'total_hits')
 
