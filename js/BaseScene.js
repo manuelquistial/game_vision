@@ -55,7 +55,7 @@ export default class BaseScene extends Phaser.Scene {
         }
         
         this.aGrid = new AlignGrid(gridConfig);
-        this.aGrid.showNumbers();
+        //this.aGrid.showNumbers();
 
         if(this.aGrid.ch / 2 > this.aGrid.cw / 2){
             this.radioLights = this.aGrid.cw / 2

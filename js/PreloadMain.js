@@ -28,7 +28,8 @@ export default class PreloadMain extends Phaser.Scene {
             this.percentageFixation = window.parameters.porcent_fixation_light //Float, from 0.0 to 1.0  ex, 0.5
             this.finishTime = window.parameters.finish_time //Integer number (ms)
             this.audio = window.parameters.sound_enable //Boolean, true to enable audio and false to disable audio
-            this.doubleMode = window.parameters.double_mode
+            this.doubleMode = window.parameters.double_mode //Integer, 1 diagonal right, 2 left, 3 horizontal, 4 vertical, 5 aleatorio
+            this.failureColorCircle = window.parameters.failure_color//hexadecimal number of 6 digits ex, 0x000000, color of failure light in GONOGO
 
             this.source_path = "../../assets/Test02MatrizV1"
             this.load.audio('success', `${this.source_path}/mp3/success.mp3`);
@@ -59,14 +60,6 @@ export default class PreloadMain extends Phaser.Scene {
             this.source_path = "."
             this.load.audio('success', `${this.source_path}/mp3/success.mp3`);
             this.load.audio('failure', `${this.source_path}/mp3/failure.mp3`);
-
-            this.titleMessage = "Score Test"
-            this.buttonMessage = "Finish"
-            this.testTimeMessage = "Test Time"
-            this.totalHitsMessage = "Total Hits"
-            this.onTimeMessage = "On Time"
-            this.missedMessage = "Missed"
-            this.precisionMessage = "Precision"
 
             this.id_users_tests = "1"
         }
