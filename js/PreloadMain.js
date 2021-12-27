@@ -50,7 +50,7 @@ export default class PreloadMain extends Phaser.Scene {
             this.timeDelay = 500 // ms
             this.timeFix = 300 // ms
             this.fixationFigure = "A" //here select letter, ex, image_# : # 0,1,2,3
-            this.fixationEnable = "blink"//on, off, blink
+            this.fixationEnable = "on"//on, off, blink
             this.percentageFixation = 0.6
             this.finishTime = 2000
             this.audio = true
