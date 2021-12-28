@@ -39,7 +39,6 @@ export default class BaseScene extends Phaser.Scene {
         this.randomNumber = data.randomNumber
         this.saveLocalPoints = data.saveLocalPoints
 
-        this.finishScene = this.time.addEvent({delay: this.finishTime, callback: this.finish, args: [this], loop: false, paused: false})
     }
 
     preload(){
@@ -74,7 +73,7 @@ export default class BaseScene extends Phaser.Scene {
         }else{
             this.radioLights = this.radioFixLights
         }
-
+   
         if(this.fixationEnable !== 'off'){
             if(this.radioLights > (this.radioFixLights - this.fixationRadio)){
                 this.radioLights = this.radioFixLights - this.fixationRadio
@@ -182,6 +181,8 @@ export default class BaseScene extends Phaser.Scene {
                 }
             });
         }
+
+        this.finishScene = this.time.addEvent({delay: this.finishTime, callback: this.finish, args: [this], loop: false, paused: false})
     }
 
     update() {
@@ -281,7 +282,7 @@ export default class BaseScene extends Phaser.Scene {
             _this.postGameData(_this, points)
             _this.saveLocalPoints(_this, 'total_hits')
         }
-
+        
         _this.gameModeAction()
         _this.aGrid.placeAt(_this.xLightPosition, _this.yLightPosition, _this.lights);
     }

@@ -9,6 +9,7 @@ export default class DoubleCircleScene extends Phaser.Scene {
     init(data){
         this.production = data.production
         this.id_users_tests = data.id_users_tests
+        this.gameType = data.gameType
 
         this.maxColumns = data.maxColumns
         this.maxRows = data.maxRows
@@ -20,11 +21,12 @@ export default class DoubleCircleScene extends Phaser.Scene {
         this.doubleMode = data.doubleMode
         this.showMessageBox = data.showMessageBox
         this.postGameData = data.postGameData
+        this.percentageFixation = data.percentageFixation
 
         //functions
         this.randomNumber = data.randomNumber
-
-        this.finishScene = this.time.addEvent({delay: this.finishTime, callback: this.finish, args: [this], loop: false, paused: false})
+        this.saveLocalPoints = data.saveLocalPoints
+    
     }
 
     preload(){
@@ -82,6 +84,7 @@ export default class DoubleCircleScene extends Phaser.Scene {
         this.lightOne.on('pointerup', function () {
             this.timeLimitLightOne = this.timerProactive.getElapsed()
             if(this.timeLimitLightOne != this.timeLimitLightTwo){
+                this.failureAudio ? this.failureAudio.play() : null
                 let points = {
                     "time_reaction": 0,
                     "position_x": this.xLightPosition,
@@ -98,6 +101,7 @@ export default class DoubleCircleScene extends Phaser.Scene {
         this.lightTwo.on('pointerup', function () {
             this.timeLimitLightTwo = this.timerProactive.getElapsed()
             if(this.timeLimitLightOne != this.timeLimitLightTwo){
+                this.failureAudio ? this.failureAudio.play() : null
                 let points = {
                     "time_reaction": 0,
                     "position_x": this.xLightPosition,
@@ -110,6 +114,9 @@ export default class DoubleCircleScene extends Phaser.Scene {
                 this.saveLocalPoints(this, 'failure')
             }
         }, this);
+        
+        this.finishScene = this.time.addEvent({delay: this.finishTime, callback: this.finish, args: [this], loop: false, paused: false})
+    
     }
 
     update(){
@@ -127,7 +134,7 @@ export default class DoubleCircleScene extends Phaser.Scene {
             }
             this.postGameData(this, points)
             this.saveLocalPoints(this, 'on_time')
-            this.saveLocalPoints(this, 'precision', timeLimitLightOne)
+            this.saveLocalPoints(this, 'precision', this.timeLimitLightOne)
 
             points.time_reaction = 0
             points.response = 0

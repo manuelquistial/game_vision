@@ -37,7 +37,6 @@ export default class FigureScene extends Phaser.Scene {
         this.randomNumber = data.randomNumber
         this.saveLocalPoints = data.saveLocalPoints
 
-        this.finishScene = this.time.addEvent({delay: this.finishTime, callback: this.finish, args: [this], loop: false, paused: false})
     }
 
     preload(){
@@ -216,7 +215,9 @@ export default class FigureScene extends Phaser.Scene {
                 }
             }
         });
-        
+       
+        this.finishScene = this.time.addEvent({delay: this.finishTime, callback: this.finish, args: [this], loop: false, paused: false})
+    
     }
 
     gameModeAction(){
