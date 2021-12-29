@@ -14,12 +14,15 @@ export default class ReactionGameScene extends Phaser.Scene {
     init(data){
         this.production = data.production
         this.id_users_tests = data.id_users_tests
+        this.gameType = data.gameType
 
         this.size = data.size
         this.color = data.color
         this.finishTime = data.finishTime
         this.percentageFixation = data.percentageFixation
         this.gameSelected = data.gameSelected
+        this.timeDelay = data.timeDelay
+        this.porcentage_points = data.porcentage_points
 
         this.showMessageBox = data.showMessageBox
         this.postGameData = data.postGameData
@@ -44,9 +47,14 @@ export default class ReactionGameScene extends Phaser.Scene {
             this.maxRows = this.reactionStatesData.columns
             this.maxColumns = this.reactionStatesData.rows
         }
+
+        this.message_duration = 1000
+        this.amount_time = 4
+        this.points_stage = 0
     }
 
     preload(){
+        this.stateMessageConfig = {delay: this.message_duration, callback: this.countStateMessage, args: [this], loop: true, paused: false}
         this.reactiveConfig = {delay: this.speed, callback: this.updatePosition, args: [this], loop: true, paused: false}
         this.proactiveConfig = {delay: this.speed, loop: false, paused: false}
     }
@@ -59,6 +67,82 @@ export default class ReactionGameScene extends Phaser.Scene {
         }
         
         this.aGrid = new AlignGrid(gridConfig);
+        this.timerStateMessage = this.time.addEvent(this.stateMessageConfig)
+    }
+
+    countStateMessage(_this){
+        if(_this.amount_time == 0){
+            _this.stateMessage()
+            _this.timerStateMessage.remove()
+            _this.initializacion()
+        }else{
+            _this.stateMessage()
+            _this.amount_time = _this.amount_time - 1
+        }
+    }
+
+    stateMessage(){
+
+        let w = this.aGrid.w * .3
+        let h = this.aGrid.h * .4
+
+        if(this.production){
+            this.stageMessage = windows.lenguage.stage_message
+        }else{
+            this.stageMessage = 'Stage'
+        }
+
+        if (this.amount_time == 0) {
+            this.back ? this.back.destroy() : null
+            this.stage_message ? this.stage_message.destroy() : null
+        }else{
+            this.back ? this.back.destroy() : null
+            this.stage_message ? this.stage_message.destroy() : null
+
+            //make a group to hold all the elements
+            let msgBox = this.add.group();
+            //make a text field
+            if(this.amount_time == 4){
+                this.stageMessage = this.stageMessage + ' ' + localStorage.getItem('reaction')
+            }else{
+                
+                this.stageMessage = this.amount_time
+            }
+
+            let back = this.add.rectangle(0, 0);
+            back.setFillStyle(0x000000);
+            back.setStrokeStyle(4, 0xffffff)
+
+            let stage_message = this.add.text(0, 0, this.stageMessage)
+                .setStyle({ fontSize: '64px', fontFamily: 'Arial'});
+
+            //set the textfeild to wrap if the text is too long
+            stage_message.wordWrap = true;
+            //make the width of the wrap 90% of the width 
+            //of the message box
+            stage_message.wordWrapWidth = w * .8;
+            //
+
+            back.setSize(w, h)
+            
+            //add the elements to the group
+            msgBox.add(back)
+            msgBox.add(stage_message)
+
+            msgBox.setXY(this.aGrid.w / 2, this.aGrid.h / 2)
+            msgBox.setOrigin(0.5)
+
+            //set the text in the middle of the message box
+            stage_message.x = this.aGrid.w  / 2 ;
+            stage_message.y = (this.aGrid.h  / 2);
+
+            this.msgBox = msgBox;
+            this.back = back
+            this.stage_message = stage_message
+        }
+    }
+
+    initializacion(){
 
         //this.aGrid.showNumbers();
 
@@ -123,6 +207,7 @@ export default class ReactionGameScene extends Phaser.Scene {
                     }
                     this.postGameData(this, points)
                     
+                    this.points_stage = this.points_stage + 1
                     this.saveLocalPoints(this, 'on_time')
                     this.saveLocalPoints(this, 'precision', timeLimitLight)
                 }
@@ -140,7 +225,8 @@ export default class ReactionGameScene extends Phaser.Scene {
                     }
                     this.postGameData(this, points)
 
-                    this.saveLocalPoints(this, 'on_time', )
+                    this.points_stage = this.points_stage + 1
+                    this.saveLocalPoints(this, 'on_time')
                     this.saveLocalPoints(this, 'precision', timeLimitLight)
 
                 }else{
@@ -215,18 +301,24 @@ export default class ReactionGameScene extends Phaser.Scene {
             _this.saveLocalPoints(_this, 'total_hits')
         }
         
-        _this.gameModeAction()
+        _this.gameModeActionLight()
         _this.aGrid.placeAt(_this.xLightPosition, _this.yLightPosition, _this.light);
     }
 
     reactionStatesMode(_this){
         const reaction = parseInt(localStorage.getItem('reaction')) + 1
-        localStorage.setItem('reaction', reaction)
 
         if(reaction == Object.keys(_this.reactionStates).length + 1){
             _this.finish(_this)
         }else{
-            _this.scene.start('ReactionGameScene', _this);
+            let average_points = Math.round((_this.finishTime / (_this.speed + _this.timeDelay)) * _this.porcentage_points)
+
+            if(_this.points_stage >= average_points){
+                localStorage.setItem('reaction', reaction)
+                _this.scene.start('ReactionGameScene', _this);
+            }else{
+                _this.finish(_this)
+            }
         }
     }
 
@@ -236,6 +328,6 @@ export default class ReactionGameScene extends Phaser.Scene {
         _this.timerProactive ? _this.timerProactive.paused = true : null
         _this.timerReactive ? _this.timerReactive.paused = true : null
         _this.timerDelayLight ? _this.timerDelayLight.paused = true : null
-        _this.showMessageBox(_this, _this.aGrid.w * .3, _this.aGrid.h * .6);
+        _this.showMessageBox(_this, _this.aGrid.w * .3, _this.aGrid.h * .65);
     }
 }

@@ -69,12 +69,16 @@ export default class FigureScene extends Phaser.Scene {
 
         this.fixationRadio = this.radioFixLights * this.percentageFixation
 
-        if((this.size >= (this.radioFixLights - this.fixationRadio))){
-            this.radioLights = this.radioFixLights - this.fixationRadio
-        }else if((this.size <= this.fixationRadio)){
+        if((this.size >= this.fixationRadio) && (this.size <= this.radioFixLights)){
+            this.radioLights = this.size
+        }else if(this.size < this.fixationRadio){
             this.radioLights = this.fixationRadio
         }else{
-            this.radioLights = this.size
+            this.radioLights = this.radioFixLights
+        }
+
+        if(this.radioLights > (this.radioFixLights - this.fixationRadio)){
+            this.radioLights = this.radioFixLights - this.fixationRadio
         }
 
         this.fixationLight = this.add.circle(0, 0, this.fixationRadio, this.colorFixation);
@@ -102,8 +106,9 @@ export default class FigureScene extends Phaser.Scene {
         this.lights = this.add.circle(0, 0, this.radioLights, this.color);
 
         if(this.figureSelection == "letters"){
+            this.alphabet = Array.from(Array(13)).map((e, i) => String.fromCharCode(this.randomNumber(65, 81)));
 
-            this.figures = this.add.text(0, 0, this.randomLetter(), {
+            this.figures = this.add.text(0, 0, this.randomLetter(this), {
                 fontFamily:'Arial',
                 color:'#000000',
                 align:'center',
@@ -229,7 +234,7 @@ export default class FigureScene extends Phaser.Scene {
         _this.gameModeAction()
 
         if(_this.figureSelection == "letters"){
-            _this.figures.text = _this.randomLetter()
+            _this.figures.text = _this.randomLetter(_this)
         }else if(_this.figureSelection == "numbers"){
             _this.figures.text = _this.randomNumbers()
         }else if(_this.figureSelection == "figures"){
@@ -258,7 +263,7 @@ export default class FigureScene extends Phaser.Scene {
         _this.gameModeAction()
 
         if(_this.figureSelection == "letters"){
-            _this.figures.text = _this.randomLetter()
+            _this.figures.text = _this.randomLetter(_this)
         }else if(_this.figureSelection == "numbers"){
             _this.figures.text = _this.randomNumbers()
         }else if(_this.figureSelection == "figures"){
@@ -280,8 +285,15 @@ export default class FigureScene extends Phaser.Scene {
     }
 
     // Function to generate random number 
-    randomLetter() { 
-        return String.fromCharCode(65 + Math.trunc(Math.random() * (25 - 0) + 0));
+    randomLetter(_this) { 
+        let data = _this.alphabet.map((x) => {
+            if(this.randomNumber(0, 3) == 1){
+                return _this.fixationFigure
+            }else{
+                return x
+            }
+        })
+        return data[this.randomNumber(0, _this.alphabet.length)]
     }
     
     randomFixLetters(){

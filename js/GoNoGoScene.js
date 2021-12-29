@@ -9,6 +9,7 @@ export default class GoNoGoScene extends Phaser.Scene {
     init(data){
         this.production = data.production
         this.id_users_tests = data.id_users_tests
+        this.gameType = data.gameType
         this.gameSelected = true
 
         this.maxColumns = data.maxColumns
@@ -17,6 +18,7 @@ export default class GoNoGoScene extends Phaser.Scene {
         this.color = data.color
         this.speed = data.speed
         this.finishTime = data.finishTime
+        this.timeDelay = data.timeDelay
         this.failureColorCircle = data.failureColorCircle
         this.percentageFixation = data.percentageFixation
         this.showMessageBox = data.showMessageBox
@@ -65,7 +67,11 @@ export default class GoNoGoScene extends Phaser.Scene {
         }
 
         this.gameModeActionLight()
-        this.light = this.add.circle(0, 0, this.radioLights, this.randomColors());
+        const random_color = this.randomColors()
+        if(random_color == this.color){
+            this.saveLocalPoints(this, 'total_go')
+        }
+        this.light = this.add.circle(0, 0, this.radioLights, random_color);
         this.light.setInteractive({ useHandCursor: true  }, new Phaser.Geom.Circle(this.radioLights, this.radioLights, this.radioLights), Phaser.Geom.Circle.Contains)
 
         this.aGrid.placeAt(this.xLightPosition, this.yLightPosition, this.light);
@@ -154,14 +160,31 @@ export default class GoNoGoScene extends Phaser.Scene {
         _this.saveLocalPoints(_this, 'total_hits')
 
         _this.gameModeActionLight()
-        _this.light.setFillStyle(_this.randomColors(), 1)
+        const random_color = _this.randomColors()
+        if(random_color == _this.color){
+            points.response = 3
+            _this.postGameData(_this, points)
+            _this.saveLocalPoints(_this, 'total_go')
+        }
+        _this.light.setFillStyle(random_color, 1)
         _this.aGrid.placeAt(_this.xLightPosition, _this.yLightPosition, _this.light);
     }
 
     delayLight(_this){
         _this.light.visible = true
         _this.gameModeActionLight()
-        _this.light.setFillStyle(_this.randomColors(), 1)
+        const random_color = _this.randomColors()
+        if(random_color == _this.color){
+            let points = {
+                "time_reaction": 0,
+                "position_x": _this.xLightPosition,
+                "position_y": _this.yLightPosition,
+                "response": 3
+            }
+            _this.postGameData(_this, points)
+            _this.saveLocalPoints(_this, 'total_go')
+        }
+        _this.light.setFillStyle(random_color, 1)
         _this.aGrid.placeAt(_this.xLightPosition, _this.yLightPosition, _this.light);
     }
 
