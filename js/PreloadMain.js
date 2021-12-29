@@ -40,13 +40,11 @@ export default class PreloadMain extends Phaser.Scene {
             this.porcentage_points = window.parameters.porcentage_points
 
             this.source_path = "../../assets/Test02MatrizV1"
-            this.load.audio('success', `${this.source_path}/mp3/success.mp3`);
-            this.load.audio('failure', `${this.source_path}/mp3/failure.mp3`);
 
             this.id_users_tests = window.parameters.id_users_tests
 
         }else{
-            this.gameType = 2 // From 1 to 4, this is the game to choice
+            this.gameType = 1 // From 1 to 4, this is the game to choice
             this.gameMode = 4 //
             if((this.scale.orientation == 'landscape-primary') || (this.scale.orientation == 'landscape')){
                 this.maxColumns = 12
@@ -56,7 +54,7 @@ export default class PreloadMain extends Phaser.Scene {
                 this.maxRows = 12
             }
             this.maxColumns = 12
-            this.maxRows = 5
+            this.maxRows = 10
             this.size = 5;
             this.color = 0xf00000
             this.colorFixation = 0xffffff
@@ -74,11 +72,13 @@ export default class PreloadMain extends Phaser.Scene {
             this.porcentage_points = 0.5
 
             this.source_path = "."
-            this.load.audio('success', `${this.source_path}/mp3/success.mp3`);
-            this.load.audio('failure', `${this.source_path}/mp3/failure.mp3`);
-
             this.id_users_tests = "1"
         }
+
+        this.load.audio('success', `${this.source_path}/mp3/success.mp3`);
+        this.load.audio('failure', `${this.source_path}/mp3/failure.mp3`);
+
+        this.load.image('button_home', `${this.source_path}/img/button_home.svg`);
 
         this.midMaxColumns = this.maxColumns / 2
         this.midMaxRows = this.maxRows / 2
@@ -160,8 +160,28 @@ export default class PreloadMain extends Phaser.Scene {
         localStorage.setItem(_this.id_users_tests, JSON.stringify(points_user)); 
     }
 
-    showMessageBox(_this, w, h) {
+    menuButton(_this){
+        console.log("hola")
+        let back = this.add.rectangle(0, 0);
+        back.setFillStyle(0xaaaaaa);
 
+        let button = _this.add.image(0, 0, 'button_home')
+        button.x = -53
+        button.y = -53
+        button.displayWidth = 20
+        button.scaleY = button.scaleX;
+        button.alpha = 0.7
+
+        this.add.container(this.aGrid.w + 42, this.aGrid.h + 44, [back, button])   
+        
+        back.setInteractive({ useHandCursor: true  })
+        back.on('pointerdown', function () {
+            _this.endGame = true
+            window.location.href = "http://eyebix.online:8080/" + this.lenguageFlag + "/eyematrix"
+        })
+    }
+
+    showMessageBox(_this, w, h) {
         let points_user = JSON.parse(localStorage.getItem(_this.id_users_tests))
 
         if(_this.production){
@@ -173,8 +193,8 @@ export default class PreloadMain extends Phaser.Scene {
             this.missedMessage = window.languaje.missedMessage
             this.failureMessage = window.languaje.failureMessage
             this.precisionMessage = window.languaje.precisionMessage
-            this.maximum_stage = windows.lenguage.maximum_stage
-            this.totalGoMessage = windows.lenguage.total_go_message
+            this.maximum_stage = window.lenguage.maximum_stage
+            this.totalGoMessage = window.lenguage.total_go_message
 
             this.lenguageFlag = window.languaje.languajeFlag
         }else{

@@ -36,6 +36,7 @@ export default class FigureScene extends Phaser.Scene {
         //functions
         this.randomNumber = data.randomNumber
         this.saveLocalPoints = data.saveLocalPoints
+        this.menuButton = data.menuButton
 
     }
 
@@ -141,7 +142,7 @@ export default class FigureScene extends Phaser.Scene {
         this.figures.setOrigin(0.5)
         
         this.container = this.add.container(0, 0, [this.lights, this.figures])
-        this.lights.setInteractive(new Phaser.Geom.Circle(this.radioLights, this.radioLights, this.radioLights), Phaser.Geom.Circle.Contains)
+        this.lights.setInteractive({ useHandCursor: true  }, new Phaser.Geom.Circle(this.radioLights, this.radioLights, this.radioLights), Phaser.Geom.Circle.Contains)
 
         this.aGrid.placeAt(this.xLightPosition, this.yLightPosition, this.container);
 
@@ -221,6 +222,7 @@ export default class FigureScene extends Phaser.Scene {
             }
         });
        
+        this.menuButton(this)
         this.finishScene = this.time.addEvent({delay: this.finishTime, callback: this.finish, args: [this], loop: false, paused: false})
     
     }

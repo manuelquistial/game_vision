@@ -32,6 +32,7 @@ export default class ReactionGameScene extends Phaser.Scene {
         //functions
         this.randomNumber = data.randomNumber
         this.saveLocalPoints = data.saveLocalPoints
+        this.menuButton = data.menuButton
 
         const reaction = localStorage.getItem('reaction')
 
@@ -68,6 +69,7 @@ export default class ReactionGameScene extends Phaser.Scene {
         
         this.aGrid = new AlignGrid(gridConfig);
         this.timerStateMessage = this.time.addEvent(this.stateMessageConfig)
+        this.menuButton(this)
     }
 
     countStateMessage(_this){
@@ -87,7 +89,7 @@ export default class ReactionGameScene extends Phaser.Scene {
         let h = this.aGrid.h * .4
 
         if(this.production){
-            this.stageMessage = windows.lenguage.stage_message
+            this.stageMessage = window.lenguage.stage_message
         }else{
             this.stageMessage = 'Stage'
         }

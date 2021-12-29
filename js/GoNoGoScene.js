@@ -29,6 +29,7 @@ export default class GoNoGoScene extends Phaser.Scene {
         //functions
         this.randomNumber = data.randomNumber
         this.saveLocalPoints = data.saveLocalPoints
+        this.menuButton = data.menuButton
 
     }
 
@@ -139,6 +140,7 @@ export default class GoNoGoScene extends Phaser.Scene {
             }
         });
 
+        this.menuButton(this)
         this.finishScene = this.time.addEvent({delay: this.finishTime, callback: this.finish, args: [this], loop: false, paused: false})
         this.timerReactive = this.time.addEvent(this.reactiveConfig)
     }

@@ -27,14 +27,13 @@ export default class DoubleCircleScene extends Phaser.Scene {
         //functions
         this.randomNumber = data.randomNumber
         this.saveLocalPoints = data.saveLocalPoints
+        this.menuButton = data.menuButton
     
     }
 
     preload(){
         this.timeLimitLightOne = -2
         this.timeLimitLightTwo = -1
-        this.failureSoundOne = false
-        this.failureSoundtwo = false
         this.proactiveConfig = {delay: this.finishTime, args: [this], loop: false, paused: false}
     }
 
@@ -87,7 +86,8 @@ export default class DoubleCircleScene extends Phaser.Scene {
         this.lightOne.on('pointerup', function () {
             this.timeLimitLightOne = this.timerProactive.getElapsed()
             if(this.timeLimitLightOne != this.timeLimitLightTwo){
-                this.failureSoundOne = true
+                this.failureAudio ? this.failureAudio.play() : null
+
                 let points = {
                     "time_reaction": 0,
                     "position_x": this.xLightPosition,
@@ -104,7 +104,8 @@ export default class DoubleCircleScene extends Phaser.Scene {
         this.lightTwo.on('pointerup', function () {
             this.timeLimitLightTwo = this.timerProactive.getElapsed()
             if(this.timeLimitLightOne != this.timeLimitLightTwo){
-                this.failureSoundtwo = true
+                this.failureAudio ? this.failureAudio.play() : null
+
                 let points = {
                     "time_reaction": 0,
                     "position_x": this.xLightPosition,
@@ -118,6 +119,7 @@ export default class DoubleCircleScene extends Phaser.Scene {
             }
         }, this);
 
+        this.menuButton(this)
         this.finishScene = this.time.addEvent({delay: this.finishTime, callback: this.finish, args: [this], loop: false, paused: false})
     
     }
@@ -126,6 +128,7 @@ export default class DoubleCircleScene extends Phaser.Scene {
         if(this.timeLimitLightOne == this.timeLimitLightTwo){
             this.lightOne.visible = false
             this.lightTwo.visible = false
+            this.failureAudio ? this.failureAudio.stop() : null
             this.successAudio ? this.successAudio.play() : null
             let points = {
                 "time_reaction": this.timeLimitLightOne,
@@ -148,12 +151,6 @@ export default class DoubleCircleScene extends Phaser.Scene {
             this.timeLimitLightTwo = -1
             
             this.timerDelayLight = this.time.addEvent({delay: this.timeDelay, callback: this.delayLight, args: [this], loop: false, paused: false})
-        }else{
-            if(this.failureSoundOne == true || this.failureSoundTwo == true){
-                this.failureAudio ? this.failureAudio.play() : null
-                this.failureSoundOne = false
-                this.failureSoundtwo = false
-            }
         }
     }
 
