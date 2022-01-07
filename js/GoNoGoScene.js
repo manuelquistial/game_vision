@@ -11,6 +11,7 @@ export default class GoNoGoScene extends Phaser.Scene {
         this.id_users_tests = data.id_users_tests
         this.gameType = data.gameType
         this.gameSelected = true
+        this.limit_figures = data.limit_figures
 
         this.maxColumns = data.maxColumns
         this.maxRows = data.maxRows
@@ -41,8 +42,8 @@ export default class GoNoGoScene extends Phaser.Scene {
     create(){
         var gridConfig = {
             'scene': this,
-            'cols': this.maxColumns,
-            'rows': this.maxRows
+            'height': this.game.config.height,
+            'width': this.game.config.width
         }
         
         this.aGrid = new AlignGrid(gridConfig);
@@ -59,10 +60,10 @@ export default class GoNoGoScene extends Phaser.Scene {
 
         this.fixationRadio = this.radioFixLights * this.percentageFixation
 
-        if((this.size >= this.fixationRadio) && (this.size <= this.radioFixLights)){
+        if((this.size >= (this.radioFixLights * 0.2)) && (this.size <= this.radioFixLights)){
             this.radioLights = this.size
-        }else if(this.size < this.fixationRadio){
-            this.radioLights = this.fixationRadio
+        }else if(this.size < (this.radioFixLights * 0.2)){
+            this.radioLights = (this.radioFixLights * 0.2)
         }else{
             this.radioLights = this.radioFixLights
         }
@@ -72,6 +73,7 @@ export default class GoNoGoScene extends Phaser.Scene {
         if(random_color == this.color){
             this.saveLocalPoints(this, 'total_go')
         }
+
         this.light = this.add.circle(0, 0, this.radioLights, random_color);
         this.light.setInteractive({ useHandCursor: true  }, new Phaser.Geom.Circle(this.radioLights, this.radioLights, this.radioLights), Phaser.Geom.Circle.Contains)
 
@@ -92,8 +94,7 @@ export default class GoNoGoScene extends Phaser.Scene {
 
             this.light.visible = false
             let timeLimitLight = this.timerReactive.getElapsed()
-            this.timerReactive.reset(this.reactiveConfig)
-            this.time.addEvent(this.timerReactive)
+            this.timerReactive.remove()
 
             let points = {
                 "time_reaction": timeLimitLight,
@@ -141,8 +142,23 @@ export default class GoNoGoScene extends Phaser.Scene {
         });
 
         this.menuButton(this)
-        this.finishScene = this.time.addEvent({delay: this.finishTime, callback: this.finish, args: [this], loop: false, paused: false})
         this.timerReactive = this.time.addEvent(this.reactiveConfig)
+        
+        if((this.finishTime != 0) && (this.limit_figures == 0)){
+            this.finishScene = this.time.addEvent({delay: this.finishTime, callback: this.finish, args: [this], loop: false, paused: false})
+        }else if(this.limit_figures != 0){
+            this.finishScene = this.time.delayedCall({})
+        }
+    }
+
+    update() {
+        if((this.finishTime == 0) && (this.limit_figures != 0)){
+            let total_hits = JSON.parse(localStorage.getItem(this.id_users_tests)).total_hits
+            if(this.limit_figures == total_hits){
+                this.timerReactive.remove()
+                this.time.addEvent({delay: this.timeDelay, callback: this.finish, args: [this], loop: false, paused: false})
+            }
+        }
     }
 
     gameModeActionLight(){
@@ -174,6 +190,8 @@ export default class GoNoGoScene extends Phaser.Scene {
 
     delayLight(_this){
         _this.light.visible = true
+        _this.timerReactive = _this.time.addEvent(_this.reactiveConfig)
+
         _this.gameModeActionLight()
         const random_color = _this.randomColors()
         if(random_color == _this.color){
@@ -204,6 +222,7 @@ export default class GoNoGoScene extends Phaser.Scene {
         _this.endGame = true
         _this.timerReactive ? _this.timerReactive.paused = true : null
         _this.timerDelayLight ? _this.timerDelayLight.paused = true : null
+        _this.finishScene.paused = true
         _this.showMessageBox(_this, _this.aGrid.w * .3, _this.aGrid.h * .6);
     }
 }

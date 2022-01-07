@@ -61,13 +61,15 @@ export default class ReactionGameScene extends Phaser.Scene {
     }
 
     create(){
+        
         var gridConfig = {
             'scene': this,
-            'cols': this.maxColumns,
-            'rows': this.maxRows
+            'height': this.game.config.height,
+            'width': this.game.config.width
         }
         
         this.aGrid = new AlignGrid(gridConfig);
+
         this.timerStateMessage = this.time.addEvent(this.stateMessageConfig)
         this.menuButton(this)
     }
@@ -89,7 +91,7 @@ export default class ReactionGameScene extends Phaser.Scene {
         let h = this.aGrid.h * .4
 
         if(this.production){
-            this.stageMessage = window.lenguage.stage_message
+            this.stageMessage = window.languaje.stage_message
         }else{
             this.stageMessage = 'Stage'
         }
@@ -147,28 +149,27 @@ export default class ReactionGameScene extends Phaser.Scene {
     initializacion(){
 
         //this.aGrid.showNumbers();
-
         if(this.aGrid.ch / 2 > this.aGrid.cw / 2){
-            this.radiolight = this.aGrid.cw / 2
-            this.radioFixlight = this.aGrid.cw / 2
+            this.radioLights = this.aGrid.cw / 2
+            this.radioFixLights = this.aGrid.cw / 2
         }else{
-            this.radiolight = this.aGrid.ch / 2
-            this.radioFixlight = this.aGrid.ch / 2
+            this.radioLights = this.aGrid.ch / 2
+            this.radioFixLights = this.aGrid.ch / 2
         }
 
-        this.fixationRadio = this.radioFixlight * this.percentageFixation
+        this.fixationRadio = this.radioFixLights * this.percentageFixation
 
-        if((this.size >= this.fixationRadio) && (this.size <= this.radioFixlight)){
-            this.radiolight = this.size
-        }else if(this.size < this.fixationRadio){
-            this.radiolight = this.fixationRadio
+        if((this.size >= (this.radioFixLights * 0.2)) && (this.size <= this.radioFixLights)){
+            this.radioLights = this.size
+        }else if(this.size < (this.radioFixLights * 0.2)){
+            this.radioLights = (this.radioFixLights * 0.2)
         }else{
-            this.radiolight = this.radioFixlight
+            this.radioLights = this.radioFixLights
         }
 
         this.gameModeActionLight()
-        this.light = this.add.circle(0, 0, this.radiolight, this.color);
-        this.light.setInteractive({ useHandCursor: true  }, new Phaser.Geom.Circle(this.radiolight, this.radiolight, this.radiolight), Phaser.Geom.Circle.Contains)
+        this.light = this.add.circle(0, 0, this.radioLights, this.color);
+        this.light.setInteractive({ useHandCursor: true  }, new Phaser.Geom.Circle(this.radioLights, this.radioLights, this.radioLights), Phaser.Geom.Circle.Contains)
 
         this.aGrid.placeAt(this.xLightPosition, this.yLightPosition, this.light);
 
@@ -198,6 +199,7 @@ export default class ReactionGameScene extends Phaser.Scene {
             
             if(this.gameSelected){
                 let timeLimitLight = this.timerReactive.getElapsed()
+                this.timerReactive.remove()
 
                 if(timeLimitLight < this.speed){
                     this.successAudio ? this.successAudio.play() : null
@@ -216,7 +218,8 @@ export default class ReactionGameScene extends Phaser.Scene {
 
             }else{
                 let timeLimitLight = this.timerProactive.getElapsed()
-    
+                this.timerProactive.remove()
+
                 if(timeLimitLight < this.speed){
                     this.successAudio ? this.successAudio.play() : null
                     let points = {
@@ -261,7 +264,8 @@ export default class ReactionGameScene extends Phaser.Scene {
             });
         }
 
-        this.finishScene = this.time.addEvent({delay: this.finishTime, callback: this.reactionStatesMode, args: [this], loop: false, paused: false})
+        this.finishScene = this.time.addEvent({delay: this.finishTime, callback: this.finish, args: [this], loop: false, paused: false})
+        
     }
 
     gameModeActionLight(){
@@ -287,11 +291,11 @@ export default class ReactionGameScene extends Phaser.Scene {
     delayLight(_this){
         _this.light.visible = true
         if(_this.gameSelected){
-            _this.timerReactive.reset(_this.reactiveConfig)
-            _this.time.addEvent(_this.timerReactive)
+
+            _this.timerReactive = _this.time.addEvent(_this.reactiveConfig)
         }else{
-            _this.timerProactive.reset(_this.proactiveConfig)
-            _this.time.addEvent(_this.timerProactive)
+            
+            _this.timerProactive = _this.time.addEvent(_this.proactiveConfig)
 
             let points = {
                 "time_reaction": 0,
@@ -330,6 +334,7 @@ export default class ReactionGameScene extends Phaser.Scene {
         _this.timerProactive ? _this.timerProactive.paused = true : null
         _this.timerReactive ? _this.timerReactive.paused = true : null
         _this.timerDelayLight ? _this.timerDelayLight.paused = true : null
+        _this.finishScene.paused = true
         _this.showMessageBox(_this, _this.aGrid.w * .3, _this.aGrid.h * .65);
     }
 }

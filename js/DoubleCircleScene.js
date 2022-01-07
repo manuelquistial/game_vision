@@ -10,6 +10,7 @@ export default class DoubleCircleScene extends Phaser.Scene {
         this.production = data.production
         this.id_users_tests = data.id_users_tests
         this.gameType = data.gameType
+        this.limit_figures = data.limit_figures
 
         this.maxColumns = data.maxColumns
         this.maxRows = data.maxRows
@@ -34,14 +35,13 @@ export default class DoubleCircleScene extends Phaser.Scene {
     preload(){
         this.timeLimitLightOne = -2
         this.timeLimitLightTwo = -1
-        this.proactiveConfig = {delay: this.finishTime, args: [this], loop: false, paused: false}
     }
 
     create(){
         var gridConfig = {
             'scene': this,
-            'cols': this.maxColumns,
-            'rows': this.maxRows
+            'height': this.game.config.height,
+            'width': this.game.config.width
         }
         
         this.aGrid = new AlignGrid(gridConfig);
@@ -58,10 +58,10 @@ export default class DoubleCircleScene extends Phaser.Scene {
 
         this.fixationRadio = this.radioFixLights * this.percentageFixation
 
-        if((this.size >= this.fixationRadio) && (this.size <= this.radioFixLights)){
+        if((this.size >= (this.radioFixLights * 0.2)) && (this.size <= this.radioFixLights)){
             this.radioLights = this.size
-        }else if(this.size < this.fixationRadio){
-            this.radioLights = this.fixationRadio
+        }else if(this.size < (this.radioFixLights * 0.2)){
+            this.radioLights = (this.radioFixLights * 0.2)
         }else{
             this.radioLights = this.radioFixLights
         }
@@ -79,7 +79,7 @@ export default class DoubleCircleScene extends Phaser.Scene {
         this.lightTwoPositionY = this.yLightPosition
         this.aGrid.placeAt(this.xLightPosition, this.yLightPosition, this.lightTwo);
 
-        this.timerProactive = this.time.addEvent(this.proactiveConfig)
+        this.timerProactive = this.time.delayedCall({})
 
         this.input.addPointer(3)
         
@@ -120,14 +120,27 @@ export default class DoubleCircleScene extends Phaser.Scene {
         }, this);
 
         this.menuButton(this)
-        this.finishScene = this.time.addEvent({delay: this.finishTime, callback: this.finish, args: [this], loop: false, paused: false})
-    
+        if((this.finishTime != 0) && (this.limit_figures == 0)){
+            this.finishScene = this.time.addEvent({delay: this.finishTime, callback: this.finish, args: [this], loop: false, paused: false})
+        }else if(this.limit_figures != 0){
+            this.finishScene = this.time.delayedCall({})
+        }
     }
 
     update(){
+        if((this.finishTime == 0) && (this.limit_figures != 0)){
+            let total_hits = JSON.parse(localStorage.getItem(this.id_users_tests)).total_hits
+            if(this.limit_figures == total_hits){
+                this.timerProactive.remove()
+                this.time.addEvent({delay: this.timeDelay, callback: this.finish, args: [this], loop: false, paused: false})
+            }
+        }
+
         if(this.timeLimitLightOne == this.timeLimitLightTwo){
             this.lightOne.visible = false
             this.lightTwo.visible = false
+            this.timerProactive.remove()
+
             this.failureAudio ? this.failureAudio.stop() : null
             this.successAudio ? this.successAudio.play() : null
             let points = {
@@ -201,8 +214,7 @@ export default class DoubleCircleScene extends Phaser.Scene {
         _this.lightOne.visible = true
         _this.lightTwo.visible = true
 
-        _this.timerProactive.reset(_this.proactiveConfig)
-        _this.time.addEvent(_this.timerProactive)
+        _this.timerProactive = _this.time.delayedCall({})
 
         _this.gameModeActionLightOne()
         _this.aGrid.placeAt(_this.xLightPosition, _this.yLightPosition, _this.lightOne);
@@ -218,6 +230,7 @@ export default class DoubleCircleScene extends Phaser.Scene {
         _this.lightTwo.destroy()
         _this.timerProactive ? _this.timerProactive.paused = true : null
         _this.timerDelayLight ? _this.timerDelayLight.paused = true : null
+        _this.finishScene.paused = true
         _this.showMessageBox(_this, _this.aGrid.w * .3, _this.aGrid.h * .6);
     }
 }

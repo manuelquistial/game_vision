@@ -1,10 +1,10 @@
 export default class AlignGrid{
 
     constructor(config) {
-        this.h = config.scene.game.config.height;
-        this.w = config.scene.game.config.width;
-        this.rows = config.rows;
-        this.cols = config.cols;
+        this.h = config.height;
+        this.w = config.width;
+        this.rows = config.scene.maxRows;
+        this.cols = config.scene.maxColumns;
         //cw cell width is the scene width divided by the number of columns
         this.cw = this.w / this.cols;
         //ch cell height is the scene height divided the number of rows

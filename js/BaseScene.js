@@ -34,6 +34,7 @@ export default class BaseScene extends Phaser.Scene {
         this.failureAudio = data.failureAudio
         this.showMessageBox = data.showMessageBox
         this.postGameData = data.postGameData
+        this.limit_figures = data.limit_figures
 
         //functions
         this.randomNumber = data.randomNumber
@@ -48,10 +49,11 @@ export default class BaseScene extends Phaser.Scene {
     }
 
     create() {
+
         var gridConfig = {
             'scene': this,
-            'cols': this.maxColumns,
-            'rows': this.maxRows
+            'height': this.game.config.height,
+            'width': this.game.config.width
         }
         
         this.aGrid = new AlignGrid(gridConfig);
@@ -67,10 +69,10 @@ export default class BaseScene extends Phaser.Scene {
 
         this.fixationRadio = this.radioFixLights * this.percentageFixation
 
-        if((this.size >= this.fixationRadio) && (this.size <= this.radioFixLights)){
+        if((this.size >= (this.radioFixLights * 0.2)) && (this.size <= this.radioFixLights)){
             this.radioLights = this.size
-        }else if(this.size < this.fixationRadio){
-            this.radioLights = this.fixationRadio
+        }else if(this.size < (this.radioFixLights * 0.2)){
+            this.radioLights = (this.radioFixLights * 0.2)
         }else{
             this.radioLights = this.radioFixLights
         }
@@ -122,6 +124,7 @@ export default class BaseScene extends Phaser.Scene {
             
             if(this.gameSelected){
                 let timeLimitLight = this.timerReactive.getElapsed()
+                this.timerReactive.remove()
 
                 if(timeLimitLight < this.speed){
                     this.successAudio ? this.successAudio.play() : null
@@ -139,7 +142,8 @@ export default class BaseScene extends Phaser.Scene {
 
             }else{
                 let timeLimitLight = this.timerProactive.getElapsed()
-    
+                this.timerProactive.remove()
+
                 if(timeLimitLight < this.speed){
                     this.successAudio ? this.successAudio.play() : null
                     let points = {
@@ -150,7 +154,7 @@ export default class BaseScene extends Phaser.Scene {
                     }
                     this.postGameData(this, points)
 
-                    this.saveLocalPoints(this, 'on_time', )
+                    this.saveLocalPoints(this, 'on_time')
                     this.saveLocalPoints(this, 'precision', timeLimitLight)
 
                 }else{
@@ -184,10 +188,25 @@ export default class BaseScene extends Phaser.Scene {
         }
 
         this.menuButton(this)
-        this.finishScene = this.time.addEvent({delay: this.finishTime, callback: this.finish, args: [this], loop: false, paused: false})
+        if((this.finishTime != 0) && (this.limit_figures == 0)){
+            this.finishScene = this.time.addEvent({delay: this.finishTime, callback: this.finish, args: [this], loop: false, paused: false})
+        }else if(this.limit_figures != 0){
+            this.finishScene = this.time.delayedCall({})
+        }
     }
 
     update() {
+        if((this.finishTime == 0) && (this.limit_figures != 0)){
+            let total_hits = JSON.parse(localStorage.getItem(this.id_users_tests)).total_hits
+            if(this.limit_figures == total_hits){
+                if(this.gameSelected){
+                    this.timerReactive.remove()
+                }else{
+                    this.timerProactive.remove()
+                }
+                this.time.addEvent({delay: this.timeDelay, callback: this.finish, args: [this], loop: false, paused: false})
+            }
+        }
     }
 
     gameModeAction(){
@@ -269,11 +288,11 @@ export default class BaseScene extends Phaser.Scene {
     delayLight(_this){
         _this.lights.visible = true
         if(_this.gameSelected){
-            _this.timerReactive.reset(_this.reactiveConfig)
-            _this.time.addEvent(_this.timerReactive)
+            
+            _this.timerReactive = _this.time.addEvent(_this.reactiveConfig)
         }else{
-            _this.timerProactive.reset(_this.proactiveConfig)
-            _this.time.addEvent(_this.timerProactive)
+    
+            _this.timerProactive = _this.time.addEvent(_this.proactiveConfig)
 
             let points = {
                 "time_reaction": 0,
@@ -295,6 +314,7 @@ export default class BaseScene extends Phaser.Scene {
         _this.timerProactive ? _this.timerProactive.paused = true : null
         _this.timerReactive ? _this.timerReactive.paused = true : null
         _this.timerDelayLight ? _this.timerDelayLight.paused = true : null
+        _this.finishScene.paused = true
         _this.showMessageBox(_this, _this.aGrid.w * .3, _this.aGrid.h * .6);
     }
 }

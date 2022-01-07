@@ -5,8 +5,7 @@ export default class PreloadMain extends Phaser.Scene {
     }
 
     preload() {
-
-        this.production = true
+        this.production = false
 
         if(this.production){
             this.gameType = window.parameters.game_type //From 1 to 3, this is the game to choice
@@ -38,13 +37,14 @@ export default class PreloadMain extends Phaser.Scene {
             this.doubleMode = window.parameters.double_mode //Integer, 1 diagonal right, 2 left, 3 horizontal, 4 vertical, 5 aleatorio
             this.failureColorCircle = window.parameters.failure_color_circle//hexadecimal number of 6 digits ex, 0x000000, color of failure light in GONOGO
             this.porcentage_points = window.parameters.porcentage_points
+            this.limit_figures = window.parameters.limit_figures
 
             this.source_path = "../../assets/Test02MatrizV1"
 
             this.id_users_tests = window.parameters.id_users_tests
 
         }else{
-            this.gameType = 1 // From 1 to 4, this is the game to choice
+            this.gameType = 5 // From 1 to 4, this is the game to choice
             this.gameMode = 4 //
             if((this.scale.orientation == 'landscape-primary') || (this.scale.orientation == 'landscape')){
                 this.maxColumns = 12
@@ -55,21 +55,22 @@ export default class PreloadMain extends Phaser.Scene {
             }
             this.maxColumns = 12
             this.maxRows = 10
-            this.size = 5;
+            this.size = 35;
             this.color = 0xf00000
             this.colorFixation = 0xffffff
             this.gameSelected = true //true: reactive, false: proactive
             this.speed = 1000 // ms
-            this.timeDelay = 50 // ms
+            this.timeDelay = 1000 // ms
             this.timeFix = 300 // ms
             this.fixationFigure = "A" //here select letter, ex, image_# : # 0,1,2,3
             this.fixationEnable = "off"//on, off, blink
-            this.percentageFixation = 0.6
-            this.finishTime = 5000
+            this.percentageFixation = 0.5
+            this.finishTime = 30000 //time or limit_figures
             this.audio = true
             this.doubleMode = 5 //1 diagonal right, 2 left, 3 horizontal, 4 vertical, 5 aleatorio
             this.failureColorCircle = 0xefd000 
             this.porcentage_points = 0.5
+            this.limit_figures = 0
 
             this.source_path = "."
             this.id_users_tests = "1"
@@ -78,7 +79,7 @@ export default class PreloadMain extends Phaser.Scene {
         this.load.audio('success', `${this.source_path}/mp3/success.mp3`);
         this.load.audio('failure', `${this.source_path}/mp3/failure.mp3`);
 
-        this.load.image('button_home', `${this.source_path}/img/button_home.svg`);
+        this.load.image('button_home_white', `${this.source_path}/img/button_home_white.svg`);
 
         this.midMaxColumns = this.maxColumns / 2
         this.midMaxRows = this.maxRows / 2
@@ -87,7 +88,7 @@ export default class PreloadMain extends Phaser.Scene {
         this.failureAudio = null
 
         let points_user = {
-            test_time: this.finishTime,
+            test_time: 0,
             total_hits: 0,
             on_time: 0,
             missed: 0,
@@ -131,6 +132,8 @@ export default class PreloadMain extends Phaser.Scene {
             this.scene.start('GoNoGoScene', this);
         }else if(this.gameType == 8){
             this.scene.start('ReactionScene', this);
+        }else if(this.gameType == 9){
+            this.scene.start('ArrowsScene', this);
         }
     }
 
@@ -161,28 +164,28 @@ export default class PreloadMain extends Phaser.Scene {
     }
 
     menuButton(_this){
-        console.log("hola")
-        let back = this.add.rectangle(0, 0);
-        back.setFillStyle(0xaaaaaa);
 
-        let button = _this.add.image(0, 0, 'button_home')
+        let back = this.add.rectangle(0, 0);
+        back.setFillStyle(0x000000);
+
+        let button = _this.add.image(0, 0, 'button_home_white')
         button.x = -53
         button.y = -53
         button.displayWidth = 20
         button.scaleY = button.scaleX;
-        button.alpha = 0.7
-
-        this.add.container(this.aGrid.w + 42, this.aGrid.h + 44, [back, button])   
+        this.add.container(_this.game.config.width + 42, _this.game.config.height + 44, [back, button])   
         
         back.setInteractive({ useHandCursor: true  })
         back.on('pointerdown', function () {
             _this.endGame = true
-            window.location.href = "http://eyebix.online:8080/" + this.lenguageFlag + "/eyematrix"
+            window.location.href = "http://eyebix.online:8080/" + (_this.production ? window.languaje.languajeFlag : "en") + "/eyematrix"
         })
     }
 
     showMessageBox(_this, w, h) {
         let points_user = JSON.parse(localStorage.getItem(_this.id_users_tests))
+
+        points_user.test_time = Math.trunc(_this.finishScene.getElapsed()/1000)
 
         if(_this.production){
             this.titleMessage = window.languaje.titleMessage
@@ -193,8 +196,8 @@ export default class PreloadMain extends Phaser.Scene {
             this.missedMessage = window.languaje.missedMessage
             this.failureMessage = window.languaje.failureMessage
             this.precisionMessage = window.languaje.precisionMessage
-            this.maximum_stage = window.lenguage.maximum_stage
-            this.totalGoMessage = window.lenguage.total_go_message
+            this.maximum_stage = window.languaje.maximum_stage
+            this.totalGoMessage = window.languaje.total_go_message
 
             this.lenguageFlag = window.languaje.languajeFlag
         }else{
@@ -215,7 +218,7 @@ export default class PreloadMain extends Phaser.Scene {
         if(_this.gameType == 8){
             this.testTimeMessage = this.maximum_stage + ': ' + localStorage.getItem('reaction')
         }else{
-            this.testTimeMessage = this.testTimeMessage + ': ' + (points_user.test_time/1000) + ' seconds'
+            this.testTimeMessage = this.testTimeMessage + ': ' + points_user.test_time + ' seconds'
         }
 
         this.total_hits = points_user.total_hits
