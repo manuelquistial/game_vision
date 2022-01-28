@@ -44,7 +44,7 @@ export default class PreloadMain extends Phaser.Scene {
             this.id_users_tests = window.parameters.id_users_tests
 
         }else{
-            this.gameType = 5 // From 1 to 4, this is the game to choice
+            this.gameType = 8 // From 1 to 4, this is the game to choice
             this.gameMode = 4 //
             if((this.scale.orientation == 'landscape-primary') || (this.scale.orientation == 'landscape')){
                 this.maxColumns = 12
@@ -60,7 +60,7 @@ export default class PreloadMain extends Phaser.Scene {
             this.colorFixation = 0xffffff
             this.gameSelected = true //true: reactive, false: proactive
             this.speed = 1000 // ms
-            this.timeDelay = 1000 // ms
+            this.timeDelay = 500 // ms
             this.timeFix = 300 // ms
             this.fixationFigure = "A" //here select letter, ex, image_# : # 0,1,2,3
             this.fixationEnable = "off"//on, off, blink
@@ -70,7 +70,7 @@ export default class PreloadMain extends Phaser.Scene {
             this.doubleMode = 5 //1 diagonal right, 2 left, 3 horizontal, 4 vertical, 5 aleatorio
             this.failureColorCircle = 0xefd000 
             this.porcentage_points = 0.5
-            this.limit_figures = 0
+            this.limit_figures = 20
 
             this.source_path = "."
             this.id_users_tests = "1"
