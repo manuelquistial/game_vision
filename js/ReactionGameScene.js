@@ -17,9 +17,7 @@ export default class ReactionGameScene extends Phaser.Scene {
 
         this.size = data.size
         this.color = data.color
-        this.percentageFixation = data.percentageFixation
         this.timeDelay = data.timeDelay
-        this.porcentage_points = data.porcentage_points
 
         this.showMessageBox = data.showMessageBox
         this.postGameData = data.postGameData
@@ -31,6 +29,7 @@ export default class ReactionGameScene extends Phaser.Scene {
         this.saveLocalPoints = data.saveLocalPoints
         this.menuButton = data.menuButton
         
+        this.percentageFixation = data.percentageFixation
         this.scanning_state = data.scanning_state
         this.levels_state = data.levels_state
         this.user_reaction = data.user_reaction

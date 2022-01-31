@@ -27,23 +27,25 @@ export default class ReactionScene extends Phaser.Scene {
         localStorage.setItem(this.reaction_game.user_reaction, JSON.stringify(reaction_game_user)); 
 
         this.reaction_game.scanning_state = {
-            "columns": 15,
-            "rows": 12,
-            "limit_figures": 1,
-            "series": 1
+            "columns": 5,
+            "rows": 4,
+            "limit_figures": 20,
+            "series": 5
         }
 
         this.reaction_game.levels_state = {
-            "columns": 15,
-            "rows": 12,
-            "limit_figures": 1,
-            "series": 2,
-            "levels": 2,
-            "minimum_series": 1,
+            "columns": 5,
+            "rows": 4,
+            "limit_figures": 20,
+            "series": 5,
+            "levels": 5,
+            "minimum_series": 3,
             "speed_minus": 30,
             "min_speed_percentage": 0.8
         }
 
+        this.reaction_game.percentageFixation = 0.2
+        
         this.scene.start('ReactionGameScene', this.reaction_game);
     }
 }
