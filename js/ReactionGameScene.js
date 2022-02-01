@@ -244,7 +244,10 @@ export default class ReactionGameScene extends Phaser.Scene {
         this.h = this.aGrid.h * .4
 
         if(this.production){
-            if(this.reaction_game_user['scanning']){
+            if(this.end_game){
+                this.boxTitle = window.languaje.reaction_message + '\n' + window.languaje.final_result
+                this.boxMessage = window.languaje.max_level + "%level%\n" + window.languaje.finish_message + "%speed% ms"
+            }else if(this.reaction_game_user['scanning']){
                 if(this.finish_message_enable){
                     this.boxTitle = window.languaje.scanning_title_finish
                     this.boxMessage = window.languaje.scanning_body_finish
@@ -253,10 +256,7 @@ export default class ReactionGameScene extends Phaser.Scene {
                     this.boxMessage = window.languaje.scanning_body_start
                 }
             }else{
-                if(this.end_game){
-                    this.boxTitle = window.languaje.reaction_message + '\n' + window.languaje.final_result
-                    this.boxMessage = window.languaje.max_level + "%level%\n" + window.languaje.finish_message + "%speed% ms"
-                }else if(this.finish_message_enable){
+                if(this.finish_message_enable){
                     this.boxTitle = window.languaje.scanning_title_finish
                     this.boxMessage = window.languaje.scanning_body_finish
                 }else{
@@ -268,7 +268,7 @@ export default class ReactionGameScene extends Phaser.Scene {
                         4: window.languaje.level_forth_attemp,
                         5: window.languaje.level_fifth_attemp
                     }
-                    this.boxMessage = window.languaje.scanning_body_start
+                    this.boxMessage = window.languaje.level_body_start
                     this.maxSpeedMessage = window.languaje.max_speed
                     this.minSpeedMessage = window.languaje.min_speed
                 }
@@ -299,8 +299,8 @@ export default class ReactionGameScene extends Phaser.Scene {
                         5: "FIFTH ATTEMP"
                     }
                     this.boxMessage = "Next, you will have to touch each light in the shortest time possible. Once you do it in SCANNING given time %speed% ms  you will be able to continue to the next level."
-                    this.maxSpeedMessage = "Maximun speed:"
-                    this.minSpeedMessage = "Minimun speed:"
+                    this.maxSpeedMessage = "Maximun speed"
+                    this.minSpeedMessage = "Minimun speed"
                 }
             }
         }
@@ -334,8 +334,8 @@ export default class ReactionGameScene extends Phaser.Scene {
                     if(this.finishSerie){
                         
                         this.boxMessage = this.porcentage_hits + '%'
-                        this.maxSpeedMessage = this.maxSpeedMessage + ' ' + Math.round(Math.max(...this.reaction_game_user['speeds'])) + ' ms'
-                        this.minSpeedMessage = this.minSpeedMessage + ' ' + Math.round(Math.min(...this.reaction_game_user['speeds'])) + ' ms'
+                        this.maxSpeedMessage = this.maxSpeedMessage + ': ' + Math.round(Math.max(...this.reaction_game_user['speeds'])) + ' ms'
+                        this.minSpeedMessage = this.minSpeedMessage + ': ' + Math.round(Math.min(...this.reaction_game_user['speeds'])) + ' ms'
                         if(this.correctColorPorcentage){
                             this.colorText = "#00FF00"
                         }else{

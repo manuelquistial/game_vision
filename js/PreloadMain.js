@@ -44,7 +44,7 @@ export default class PreloadMain extends Phaser.Scene {
             this.id_users_tests = window.parameters.id_users_tests
 
         }else{
-            this.gameType = 8 // From 1 to 4, this is the game to choice
+            this.gameType = 1 // From 1 to 4, this is the game to choice
             this.gameMode = 4 //
             if((this.scale.orientation == 'landscape-primary') || (this.scale.orientation == 'landscape')){
                 this.maxColumns = 12
@@ -65,7 +65,7 @@ export default class PreloadMain extends Phaser.Scene {
             this.fixationFigure = "A" //here select letter, ex, image_# : # 0,1,2,3
             this.fixationEnable = "off"//on, off, blink
             this.percentageFixation = 0.5
-            this.finishTime = 1000 //time or limit_figures
+            this.finishTime = 2000 //time or limit_figures
             this.audio = true
             this.doubleMode = 5 //1 diagonal right, 2 left, 3 horizontal, 4 vertical, 5 aleatorio
             this.failureColorCircle = 0xefd000 
@@ -198,6 +198,8 @@ export default class PreloadMain extends Phaser.Scene {
             this.precisionMessage = window.languaje.precisionMessage
             this.maximum_stage = window.languaje.maximum_stage
             this.totalGoMessage = window.languaje.total_go_message
+            this.maxSpeedMessage = window.languaje.max_speed
+            this.minSpeedMessage = window.languaje.min_speed
 
             this.lenguageFlag = window.languaje.languajeFlag
         }else{
@@ -211,6 +213,8 @@ export default class PreloadMain extends Phaser.Scene {
             this.precisionMessage = "Precision"
             this.maximum_stage = "Maximum Stage"
             this.totalGoMessage = "Total Go"
+            this.maxSpeedMessage = "Maximun speed"
+            this.minSpeedMessage = "Minimun speed"
 
             this.lenguageFlag = "en"
         }
@@ -238,8 +242,17 @@ export default class PreloadMain extends Phaser.Scene {
 
         this.totalHitsMessage = this.totalHitsMessage + ': ' + this.total_hits
         this.onTimeMessage = this.onTimeMessage + ': ' + points_user.on_time
-        this.missedMessage = this.missedMessage + ': ' + this.missed
-        this.failureMessage = this.failureMessage + ': ' + this.failure
+        if(_this.gameSelected){
+            this.missedMessage = this.missedMessage + ': ' + this.missed
+            this.failureMessage = this.failureMessage + ': ' + this.failure
+        }else{
+            if(this.speedProactive.length == 0){
+                this.speedProactive = [0]
+            }
+
+            this.maxSpeedMessage = this.maxSpeedMessage + ': ' + Math.round(Math.max(...this.speedProactive)) + ' ms'
+            this.minSpeedMessage = this.minSpeedMessage + ': ' + Math.round(Math.min(...this.speedProactive)) + ' ms'
+        }
         this.precisionMessage = this.precisionMessage + ': ' + Math.round(points_user.precision == 0 ? 0 : points_user.precision / points_user.on_time) + ' ms'
 
         //just in case the message box already exists
@@ -276,12 +289,21 @@ export default class PreloadMain extends Phaser.Scene {
             
         let missed = null
         let failure = null
+        let maxSpeed = null
+        let minSpeed = null
+
         if(this.gameType != 5){
             if(this.gameSelected){
                 missed = this.add.text(0, 0, this.missedMessage)
                     .setStyle({ fontFamily: 'Arial'});
 
                 failure = this.add.text(0, 0, this.failureMessage)
+                    .setStyle({ fontFamily: 'Arial'});
+            }else{
+                minSpeed = this.add.text(0, 0, this.minSpeedMessage)
+                    .setStyle({ fontFamily: 'Arial'});
+
+                maxSpeed = this.add.text(0, 0, this.maxSpeedMessage)
                     .setStyle({ fontFamily: 'Arial'});
             }
         }
@@ -315,6 +337,9 @@ export default class PreloadMain extends Phaser.Scene {
             if(_this.gameSelected){
                 msgBox.add(missed)
                 msgBox.add(failure)
+            }else{
+                msgBox.add(maxSpeed)
+                msgBox.add(minSpeed)
             }
         }
         msgBox.add(precision)
@@ -332,19 +357,15 @@ export default class PreloadMain extends Phaser.Scene {
 
 
         test_time.x = this.aGrid.w  / 2 ;
-        if(_this.gameSelected){
-            test_time.y = (this.aGrid.h  / 2) - (_this.gameType == 5 ? 40 : (_this.gameType == 7 ? 100 : 70));
-        }else{
-            test_time.y = (this.aGrid.h  / 2) - (_this.gameType == 5 ? 40 : (_this.gameType == 7 ? 100 : 40));
-        }
+        
+        test_time.y = (this.aGrid.h  / 2) - (_this.gameType == 5 ? 40 : (_this.gameType == 7 ? 100 : 70));
+      
 
 
         total_hints.x = this.aGrid.w  / 2 ;
-        if(_this.gameSelected){
-            total_hints.y = (this.aGrid.h  / 2) - (_this.gameType == 5 ? 10 : (_this.gameType == 7 ? 70 : 40));
-        }else{
-            total_hints.y = (this.aGrid.h  / 2) - (_this.gameType == 5 ? 10 : (_this.gameType == 7 ? 70 : 10));
-        }
+
+        total_hints.y = (this.aGrid.h  / 2) - (_this.gameType == 5 ? 10 : (_this.gameType == 7 ? 70 : 40));
+        
  
         if(_this.gameType == 7){
             total_go.x = this.aGrid.w  / 2 ;
@@ -352,11 +373,9 @@ export default class PreloadMain extends Phaser.Scene {
         }
 
         on_time.x = this.aGrid.w  / 2 ;
-        if(_this.gameSelected){
-            on_time.y = (this.aGrid.h  / 2) - (_this.gameType == 5 ? -20 : 10);
-        }else{
-            on_time.y = (this.aGrid.h  / 2) - (_this.gameType == 5 ? -20 : -20);
-        }
+        
+        on_time.y = (this.aGrid.h  / 2) - (_this.gameType == 5 ? -20 : 10);
+        
 
 
         if(_this.gameType != 5){
@@ -366,11 +385,17 @@ export default class PreloadMain extends Phaser.Scene {
 
                 failure.x = this.aGrid.w  / 2 ;
                 failure.y = (this.aGrid.h  / 2) + (_this.gameSelected ? 50 : 20)
+            }else{
+                minSpeed.x = this.aGrid.w  / 2 ;
+                minSpeed.y = (this.aGrid.h  / 2) + 20;
+
+                maxSpeed.x = this.aGrid.w  / 2 ;
+                maxSpeed.y = (this.aGrid.h  / 2) + (_this.gameSelected ? 50 : 50)
             }
         }
 
         precision.x = this.aGrid.w  / 2 ;
-        precision.y = (this.aGrid.h  / 2) + (_this.gameSelected ? 80 : 50)
+        precision.y = (this.aGrid.h  / 2) + (_this.gameSelected ? 80 : 80)
 
 
         button.x = this.aGrid.w  / 2 ;

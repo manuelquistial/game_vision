@@ -41,6 +41,7 @@ export default class BaseScene extends Phaser.Scene {
         this.saveLocalPoints = data.saveLocalPoints
         this.menuButton = data.menuButton
 
+        this.speedProactive = []
     }
 
     preload(){
@@ -153,6 +154,8 @@ export default class BaseScene extends Phaser.Scene {
                 }
                 this.postGameData(this, points)
 
+                this.speedProactive.push(timeLimitLight)
+                console.log(this.speedProactive)
                 this.saveLocalPoints(this, 'on_time')
                 this.saveLocalPoints(this, 'precision', timeLimitLight)
 

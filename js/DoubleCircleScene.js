@@ -30,6 +30,7 @@ export default class DoubleCircleScene extends Phaser.Scene {
         this.saveLocalPoints = data.saveLocalPoints
         this.menuButton = data.menuButton
     
+        this.speedProactive = []
     }
 
     preload(){
@@ -153,6 +154,7 @@ export default class DoubleCircleScene extends Phaser.Scene {
             }
             this.postGameData(this, points)
             this.saveLocalPoints(this, 'on_time')
+            this.speedProactive.push(this.timeLimitLightOne)
             this.saveLocalPoints(this, 'precision', this.timeLimitLightOne)
 
             points.time_reaction = 0
