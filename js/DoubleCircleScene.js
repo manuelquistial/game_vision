@@ -97,7 +97,7 @@ export default class DoubleCircleScene extends Phaser.Scene {
                     "response": 2
                 }
                 this.postGameData(this, points)
-                this.saveLocalPoints(this, 'failure')
+                //this.saveLocalPoints(this, 'failure')
             }
         }, this);
 
@@ -115,7 +115,7 @@ export default class DoubleCircleScene extends Phaser.Scene {
                     "response": 2
                 }
                 this.postGameData(this, points)
-                this.saveLocalPoints(this, 'failure')
+                //this.saveLocalPoints(this, 'failure')
             }
         }, this);
 

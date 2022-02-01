@@ -144,22 +144,18 @@ export default class BaseScene extends Phaser.Scene {
                 let timeLimitLight = this.timerProactive.getElapsed()
                 this.timerProactive.remove()
 
-                if(timeLimitLight < this.speed){
-                    this.successAudio ? this.successAudio.play() : null
-                    let points = {
-                        "time_reaction": timeLimitLight,
-                        "position_x": this.xLightPosition,
-                        "position_y": this.yLightPosition,
-                        "response": 1
-                    }
-                    this.postGameData(this, points)
-
-                    this.saveLocalPoints(this, 'on_time')
-                    this.saveLocalPoints(this, 'precision', timeLimitLight)
-
-                }else{
-                    this.failureAudio ? this.failureAudio.play() : null
+                this.successAudio ? this.successAudio.play() : null
+                let points = {
+                    "time_reaction": timeLimitLight,
+                    "position_x": this.xLightPosition,
+                    "position_y": this.yLightPosition,
+                    "response": 1
                 }
+                this.postGameData(this, points)
+
+                this.saveLocalPoints(this, 'on_time')
+                this.saveLocalPoints(this, 'precision', timeLimitLight)
+
             }
 
             this.lights.visible = false

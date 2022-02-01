@@ -58,19 +58,19 @@ export default class PreloadMain extends Phaser.Scene {
             this.size = 35;
             this.color = 0xf00000
             this.colorFixation = 0xffffff
-            this.gameSelected = true //true: reactive, false: proactive
+            this.gameSelected = false //true: reactive, false: proactive
             this.speed = 1000 // ms
             this.timeDelay = 500 // ms
             this.timeFix = 300 // ms
             this.fixationFigure = "A" //here select letter, ex, image_# : # 0,1,2,3
             this.fixationEnable = "off"//on, off, blink
             this.percentageFixation = 0.5
-            this.finishTime = 30000 //time or limit_figures
+            this.finishTime = 1000 //time or limit_figures
             this.audio = true
             this.doubleMode = 5 //1 diagonal right, 2 left, 3 horizontal, 4 vertical, 5 aleatorio
             this.failureColorCircle = 0xefd000 
             this.porcentage_points = 0.5
-            this.limit_figures = 20
+            this.limit_figures = 0
 
             this.source_path = "."
             this.id_users_tests = "1"
@@ -280,10 +280,10 @@ export default class PreloadMain extends Phaser.Scene {
             if(this.gameSelected){
                 missed = this.add.text(0, 0, this.missedMessage)
                     .setStyle({ fontFamily: 'Arial'});
-            }
 
-            failure = this.add.text(0, 0, this.failureMessage)
-                .setStyle({ fontFamily: 'Arial'});
+                failure = this.add.text(0, 0, this.failureMessage)
+                    .setStyle({ fontFamily: 'Arial'});
+            }
         }
             
         let precision = this.add.text(0, 0, this.precisionMessage)
@@ -314,8 +314,8 @@ export default class PreloadMain extends Phaser.Scene {
         if(_this.gameType != 5){
             if(_this.gameSelected){
                 msgBox.add(missed)
+                msgBox.add(failure)
             }
-            msgBox.add(failure)
         }
         msgBox.add(precision)
         msgBox.add(button)
@@ -332,11 +332,19 @@ export default class PreloadMain extends Phaser.Scene {
 
 
         test_time.x = this.aGrid.w  / 2 ;
-        test_time.y = (this.aGrid.h  / 2) - (_this.gameType == 5 ? 40 : (_this.gameType == 7 ? 100 : 70));
+        if(_this.gameSelected){
+            test_time.y = (this.aGrid.h  / 2) - (_this.gameType == 5 ? 40 : (_this.gameType == 7 ? 100 : 70));
+        }else{
+            test_time.y = (this.aGrid.h  / 2) - (_this.gameType == 5 ? 40 : (_this.gameType == 7 ? 100 : 40));
+        }
 
 
         total_hints.x = this.aGrid.w  / 2 ;
-        total_hints.y = (this.aGrid.h  / 2) - (_this.gameType == 5 ? 10 : (_this.gameType == 7 ? 70 : 40));
+        if(_this.gameSelected){
+            total_hints.y = (this.aGrid.h  / 2) - (_this.gameType == 5 ? 10 : (_this.gameType == 7 ? 70 : 40));
+        }else{
+            total_hints.y = (this.aGrid.h  / 2) - (_this.gameType == 5 ? 10 : (_this.gameType == 7 ? 70 : 10));
+        }
  
         if(_this.gameType == 7){
             total_go.x = this.aGrid.w  / 2 ;
@@ -344,19 +352,21 @@ export default class PreloadMain extends Phaser.Scene {
         }
 
         on_time.x = this.aGrid.w  / 2 ;
-        on_time.y = (this.aGrid.h  / 2) - (_this.gameType == 5 ? -20 : 10);
+        if(_this.gameSelected){
+            on_time.y = (this.aGrid.h  / 2) - (_this.gameType == 5 ? -20 : 10);
+        }else{
+            on_time.y = (this.aGrid.h  / 2) - (_this.gameType == 5 ? -20 : -20);
+        }
 
 
         if(_this.gameType != 5){
             if(_this.gameSelected){
                 missed.x = this.aGrid.w  / 2 ;
                 missed.y = (this.aGrid.h  / 2) + 20;
+
+                failure.x = this.aGrid.w  / 2 ;
+                failure.y = (this.aGrid.h  / 2) + (_this.gameSelected ? 50 : 20)
             }
-        }
-        
-        if(_this.gameType != 5){
-            failure.x = this.aGrid.w  / 2 ;
-            failure.y = (this.aGrid.h  / 2) + (_this.gameSelected ? 50 : 20)
         }
 
         precision.x = this.aGrid.w  / 2 ;
