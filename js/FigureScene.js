@@ -42,7 +42,9 @@ export default class FigureScene extends Phaser.Scene {
     }
 
     preload(){
-        this.reactiveConfig = {delay: this.speed, callback: this.updatePosition, args: [this], loop: true, paused: false}
+        
+        this.reactiveConfig = {delay: this.speed, callback: this.updatePosition, callbackScope: this, loop: false, paused: false}
+
         if(this.figureSelection == "figures"){
             this.load.image('image_0', `${this.source_path}/img/apple.svg`);
             this.load.image('image_1', `${this.source_path}/img/circle.svg`);
@@ -79,12 +81,6 @@ export default class FigureScene extends Phaser.Scene {
             this.radioLights = this.radioFixLights
         }
 
-        if(this.radioLights > (this.radioFixLights - this.fixationRadio)){
-            this.radioLights = this.radioFixLights - this.fixationRadio
-        }
-
-        this.fixationLight = this.add.circle(0, 0, this.fixationRadio, this.colorFixation);
-          
         if(this.figureSelection == "letters" || this.figureSelection == "numbers" || this.figureSelection == "fix_letters"){
 
             this.figureFixation = this.add.text(0, 0, this.fixationFigure, {
@@ -102,7 +98,18 @@ export default class FigureScene extends Phaser.Scene {
 
         this.figureFixation.setOrigin(0.5)
 
-        this.containerFixation = this.add.container(this.aGrid.w / 2, this.aGrid.h / 2, [this.fixationLight, this.figureFixation])
+
+        if(this.fixationEnable !== 'off'){
+            if(this.radioLights > (this.radioFixLights - this.fixationRadio)){
+                this.radioLights = this.radioFixLights - this.fixationRadio
+            }
+            this.fixationLight = this.add.circle(0, 0, this.fixationRadio, this.colorFixation);
+            this.add.container(this.aGrid.w / 2, this.aGrid.h / 2, [this.fixationLight, this.figureFixation])
+        }else{
+            if(this.timerFixLight){
+                this.timerFixLight.remove()
+            }
+        }
 
         this.gameModeAction()
         this.lights = this.add.circle(0, 0, this.radioLights, this.color);
@@ -110,7 +117,7 @@ export default class FigureScene extends Phaser.Scene {
         if(this.figureSelection == "letters"){
             this.alphabet = Array.from(Array(13)).map((e, i) => String.fromCharCode(this.randomNumber(65, 81)));
 
-            this.figures = this.add.text(0, 0, this.randomLetter(this), {
+            this.figures = this.add.text(0, 0, this.randomLetter(), {
                 fontFamily:'Arial',
                 color:'#000000',
                 align:'center',
@@ -143,11 +150,10 @@ export default class FigureScene extends Phaser.Scene {
         this.figures.setOrigin(0.5)
         
         this.container = this.add.container(0, 0, [this.lights, this.figures])
+        this.container.setVisible(false)
         this.lights.setInteractive({ useHandCursor: true  }, new Phaser.Geom.Circle(this.radioLights, this.radioLights, this.radioLights), Phaser.Geom.Circle.Contains)
 
         this.aGrid.placeAt(this.xLightPosition, this.yLightPosition, this.container);
-
-        this.timerReactive = this.time.addEvent(this.reactiveConfig)
 
         let points = {
             "time_reaction": 0,
@@ -197,7 +203,7 @@ export default class FigureScene extends Phaser.Scene {
                 }
             }
             this.container.visible = false
-            this.timerDelayLight = this.time.addEvent({delay: this.timeDelay, callback: this.delayLight, args: [this], loop: false, paused: false})
+            this.timerDelayLight = this.time.addEvent({delay: this.timeDelay, callback: this.delayLight, callbackScope: this, loop: false, paused: false})
 
         }, this);
 
@@ -222,10 +228,13 @@ export default class FigureScene extends Phaser.Scene {
        
         this.menuButton(this)
         if((this.finishTime != 0) && (this.limit_figures == 0)){
-            this.finishScene = this.time.addEvent({delay: this.finishTime, callback: this.finish, args: [this], loop: false, paused: false})
+            this.finishScene = this.time.addEvent({delay: this.finishTime, callback: this.finishGame, callbackScope: this, loop: false, paused: false})
         }else if(this.limit_figures != 0){
             this.finishScene = this.time.delayedCall({})
         }
+
+        this.timerReactive = this.time.addEvent(this.reactiveConfig)
+        this.container.setVisible(true)
     }
 
     update() {
@@ -233,7 +242,7 @@ export default class FigureScene extends Phaser.Scene {
             let total_hits = JSON.parse(localStorage.getItem(this.id_users_tests)).total_hits
             if(this.limit_figures == total_hits){
                 this.timerReactive.remove()
-                this.time.addEvent({delay: this.timeDelay, callback: this.finish, args: [this], loop: false, paused: false})
+                this.time.addEvent({delay: this.timeDelay, callback: this.finish, callbackScope: this, loop: false, paused: false})
             }
         }
     }
@@ -243,69 +252,72 @@ export default class FigureScene extends Phaser.Scene {
         this.yLightPosition = this.randomNumber(0, this.maxRows)
     }
 
-    updatePosition(_this){
-        _this.gameModeAction()
+    updatePosition(){
+        this.gameModeAction()
 
-        if(_this.figureSelection == "letters"){
-            _this.figures.text = _this.randomLetter(_this)
-        }else if(_this.figureSelection == "numbers"){
-            _this.figures.text = _this.randomNumbers()
-        }else if(_this.figureSelection == "figures"){
-            _this.figures.setTexture(_this.randomFigures())
-        }else if(_this.figureSelection == "fix_letters"){
-            _this.figures.text = _this.randomFixLetters()
+        if(this.figureSelection == "letters"){
+            this.figures.text = this.randomLetter()
+        }else if(this.figureSelection == "numbers"){
+            this.figures.text = this.randomNumbers()
+        }else if(this.figureSelection == "figures"){
+            this.figures.setTexture(this.randomFigures())
+        }else if(this.figureSelection == "fix_letters"){
+            this.figures.text = this.randomFixLetters()
         }
 
         let points = {
             "time_reaction": 0,
-            "position_x": _this.xLightPosition,
-            "position_y": _this.yLightPosition,
+            "position_x": this.xLightPosition,
+            "position_y": this.yLightPosition,
             "response": 0
         }
-        _this.postGameData(_this, points)
-        _this.saveLocalPoints(_this, 'total_hits')
+        this.postGameData(this, points)
+        this.saveLocalPoints(this, 'total_hits')
 
-        _this.aGrid.placeAt(_this.xLightPosition, _this.yLightPosition, _this.container);
+        this.aGrid.placeAt(this.xLightPosition, this.yLightPosition, this.container);
+
+        this.timerReactive.remove()
+        this.timerReactive = this.time.addEvent(this.reactiveConfig)
     }
 
-    delayLight(_this){
-        _this.container.visible = true
-        _this.timerReactive = _this.time.addEvent(_this.reactiveConfig)
+    delayLight(){
+        this.container.visible = true
+        this.timerReactive = this.time.addEvent(this.reactiveConfig)
 
-        _this.gameModeAction()
+        this.gameModeAction()
 
-        if(_this.figureSelection == "letters"){
-            _this.figures.text = _this.randomLetter(_this)
-        }else if(_this.figureSelection == "numbers"){
-            _this.figures.text = _this.randomNumbers()
-        }else if(_this.figureSelection == "figures"){
-            _this.figures.setTexture(_this.randomFigures())
-        }else if(_this.figureSelection == "fix_letters"){
-            _this.figures.text = _this.randomFixLetters()
+        if(this.figureSelection == "letters"){
+            this.figures.text = this.randomLetter()
+        }else if(this.figureSelection == "numbers"){
+            this.figures.text = this.randomNumbers()
+        }else if(this.figureSelection == "figures"){
+            this.figures.setTexture(this.randomFigures())
+        }else if(this.figureSelection == "fix_letters"){
+            this.figures.text = this.randomFixLetters()
         }
 
         /*let points = {
             "time_reaction": 0,
-            "position_x": _this.xLightPosition,
-            "position_y": _this.yLightPosition,
+            "position_x": this.xLightPosition,
+            "position_y": this.yLightPosition,
             "response": 2
         }
-        _this.postGameData(_this, points)
-        _this.saveLocalPoints(_this, 'total_hits')*/
+        this.postGameData(this, points)
+        this.saveLocalPoints(this, 'total_hits')*/
 
-        //_this.aGrid.placeAt(_this.xLightPosition, _this.yLightPosition, _this.container);
+        //this.aGrid.placeAt(this.xLightPosition, this.yLightPosition, this.container);
     }
 
     // Function to generate random number 
-    randomLetter(_this) { 
-        let data = _this.alphabet.map((x) => {
+    randomLetter() { 
+        let data = this.alphabet.map((x) => {
             if(this.randomNumber(0, 3) == 1){
-                return _this.fixationFigure
+                return this.fixationFigure
             }else{
                 return x
             }
         })
-        return data[this.randomNumber(0, _this.alphabet.length)]
+        return data[this.randomNumber(0, this.alphabet.length)]
     }
     
     randomFixLetters(){
@@ -321,12 +333,18 @@ export default class FigureScene extends Phaser.Scene {
         return this.randomNumber(0, 10)
     }
 
-    finish(_this){
-        _this.lights.destroy()
-        _this.endGame = true
-        _this.timerReactive ? _this.timerReactive.paused = true : null
-        _this.timerDelayLight ? _this.timerDelayLight.paused = true : null
-        _this.finishScene.paused = true
-        _this.showMessageBox(_this, _this.aGrid.w * .3, _this.aGrid.h * .6);
+    finishGame(){
+        this.finishTimeScene = this.finishScene.getElapsed()
+        this.finishScene.remove()
+        this.finishScene = this.time.addEvent({delay: this.speed, callback: this.finish, callbackScope: this, loop: false, paused: false})
+    }
+
+    finish(){
+        this.lights.destroy()
+        this.endGame = true
+        this.timerReactive ? this.timerReactive.paused = true : null
+        this.timerDelayLight ? this.timerDelayLight.paused = true : null
+        this.finishScene.paused = true
+        this.showMessageBox(this, this.aGrid.w * .3, this.aGrid.h * .6);
     }
 }

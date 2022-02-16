@@ -5,10 +5,11 @@ export default class PreloadMain extends Phaser.Scene {
     }
 
     preload() {
-        this.production = false
+
+        this.production = localStorage.getItem('production') == "true" ? true : false
 
         if(this.production){
-            this.gameType = window.parameters.game_type //From 1 to 3, this is the game to choice
+            this.gameType = localStorage.getItem('gameType') //From 1 to 3, this is the game to choice
             this.gameMode = window.parameters.game_mode //From 1 to 9, this is the screen mode divition 
 
             //"columns" and "rows" define the number of circles to show
@@ -25,6 +26,7 @@ export default class PreloadMain extends Phaser.Scene {
             this.size = window.parameters.size //Integer number, size of circles in pixeles
             this.color = window.parameters.color_light //hexadecimal number of 6 digits ex, 0x000000
             this.colorFixation = window.parameters.color_fixation //hexadecimal number of 6 digits ex, 0x000000
+            this.secondColor = window.parameters.second_color //hexadecimal number of 6 digits ex, 0x000000
             this.gameSelected = window.parameters.game_selected //Boolean true to reactive and false to proactive
             this.speed = window.parameters.time_light //Integer number (ms)
             this.timeDelay = window.parameters.time_delay_light //Integer number (ms)
@@ -39,13 +41,13 @@ export default class PreloadMain extends Phaser.Scene {
             this.porcentage_points = window.parameters.porcentage_points
             this.limit_figures = window.parameters.limit_figures
 
-            this.source_path = "../../assets/Test02MatrizV1"
+            this.source_path = "../../assets/Test02MatrixV1"
 
             this.id_users_tests = window.parameters.id_users_tests
 
         }else{
-            this.gameType = 1 // From 1 to 4, this is the game to choice
-            this.gameMode = 4 //
+            this.gameType = localStorage.getItem('gameType') // From 1 to 4, this is the game to choice
+            this.gameMode = 1 //
             if((this.scale.orientation == 'landscape-primary') || (this.scale.orientation == 'landscape')){
                 this.maxColumns = 12
                 this.maxRows = 5
@@ -53,19 +55,18 @@ export default class PreloadMain extends Phaser.Scene {
                 this.maxColumns = 5
                 this.maxRows = 12
             }
-            this.maxColumns = 12
-            this.maxRows = 10
             this.size = 35;
             this.color = 0xf00000
             this.colorFixation = 0xffffff
-            this.gameSelected = false //true: reactive, false: proactive
-            this.speed = 1000 // ms
-            this.timeDelay = 500 // ms
-            this.timeFix = 300 // ms
+            this.secondColor = 0xffffff
+            this.gameSelected = true //true: reactive, false: proactive
+            this.speed = 500 // ms
+            this.timeDelay = 100 // ms
+            this.timeFix = 1000 // ms
             this.fixationFigure = "A" //here select letter, ex, image_# : # 0,1,2,3
             this.fixationEnable = "off"//on, off, blink
             this.percentageFixation = 0.5
-            this.finishTime = 2000 //time or limit_figures
+            this.finishTime = 30000 //time or limit_figures
             this.audio = true
             this.doubleMode = 5 //1 diagonal right, 2 left, 3 horizontal, 4 vertical, 5 aleatorio
             this.failureColorCircle = 0xefd000 
@@ -76,6 +77,8 @@ export default class PreloadMain extends Phaser.Scene {
             this.id_users_tests = "1"
         }
 
+        console.log(this)
+ 
         this.load.audio('success', `${this.source_path}/mp3/success.mp3`);
         this.load.audio('failure', `${this.source_path}/mp3/failure.mp3`);
 
@@ -113,6 +116,7 @@ export default class PreloadMain extends Phaser.Scene {
         }
 
         if(this.gameType == 1){
+            this.doubleColor = false
             this.scene.start('BaseScene', this);
         }else if(this.gameType == 2){
             this.figureSelection = "letters"
@@ -134,6 +138,9 @@ export default class PreloadMain extends Phaser.Scene {
             this.scene.start('ReactionScene', this);
         }else if(this.gameType == 9){
             this.scene.start('ArrowsScene', this);
+        }else if(this.gameType == 10){
+            this.doubleColor = true
+            this.scene.start('BaseScene', this);
         }
     }
 
@@ -150,7 +157,7 @@ export default class PreloadMain extends Phaser.Scene {
 
     postGameData(_this, points){
         if(_this.production){
-            let endpoint = 'matriz';
+            let endpoint = 'matrix';
             let data = {"id_users_tests": _this.id_users_tests, "cvar": 1, ...points}
             $.post(endpoint, data)
             .done(function(value){});
@@ -178,14 +185,14 @@ export default class PreloadMain extends Phaser.Scene {
         back.setInteractive({ useHandCursor: true  })
         back.on('pointerdown', function () {
             _this.endGame = true
-            window.location.href = "http://eyebix.online:8080/" + (_this.production ? window.languaje.languajeFlag : "en") + "/eyematrix"
+            window.location.href = "http://eyebix.online/" + (_this.production ? window.languaje.languajeFlag : "en") + "/eyematrix"
         })
     }
 
     showMessageBox(_this, w, h) {
         let points_user = JSON.parse(localStorage.getItem(_this.id_users_tests))
 
-        points_user.test_time = Math.trunc(_this.finishScene.getElapsed()/1000)
+        points_user.test_time = Math.trunc(_this.finishTimeScene/1000)
 
         if(_this.production){
             this.titleMessage = window.languaje.titleMessage
@@ -282,18 +289,18 @@ export default class PreloadMain extends Phaser.Scene {
             total_go = this.add.text(0, 0, this.totalGoMessage)
             .setStyle({ fontFamily: 'Arial'});
         }
-
-        let on_time = this.add.text(0, 0, this.onTimeMessage)
-            .setStyle({ fontFamily: 'Arial'});
-
             
         let missed = null
         let failure = null
         let maxSpeed = null
         let minSpeed = null
+        let on_time = null
 
         if(this.gameType != 5){
             if(this.gameSelected){
+                on_time = this.add.text(0, 0, this.onTimeMessage)
+                    .setStyle({ fontFamily: 'Arial'});
+
                 missed = this.add.text(0, 0, this.missedMessage)
                     .setStyle({ fontFamily: 'Arial'});
 
@@ -332,9 +339,9 @@ export default class PreloadMain extends Phaser.Scene {
         if(_this.gameType == 7){
             msgBox.add(total_go)
         }
-        msgBox.add(on_time)
         if(_this.gameType != 5){
             if(_this.gameSelected){
+                msgBox.add(on_time)
                 msgBox.add(missed)
                 msgBox.add(failure)
             }else{
@@ -357,14 +364,11 @@ export default class PreloadMain extends Phaser.Scene {
 
 
         test_time.x = this.aGrid.w  / 2 ;
-        
-        test_time.y = (this.aGrid.h  / 2) - (_this.gameType == 5 ? 40 : (_this.gameType == 7 ? 100 : 70));
+        test_time.y = (this.aGrid.h  / 2) - (_this.gameType == 5 ? 30 : (_this.gameType == 7 ? 100 : 70));
       
 
-
         total_hints.x = this.aGrid.w  / 2 ;
-
-        total_hints.y = (this.aGrid.h  / 2) - (_this.gameType == 5 ? 10 : (_this.gameType == 7 ? 70 : 40));
+        total_hints.y = (this.aGrid.h  / 2) - (_this.gameType == 5 ? 0 : (_this.gameType == 7 ? 70 : 40));
         
  
         if(_this.gameType == 7){
@@ -372,31 +376,27 @@ export default class PreloadMain extends Phaser.Scene {
             total_go.y = (this.aGrid.h  / 2) - 40;
         }
 
-        on_time.x = this.aGrid.w  / 2 ;
-        
-        on_time.y = (this.aGrid.h  / 2) - (_this.gameType == 5 ? -20 : 10);
-        
-
-
         if(_this.gameType != 5){
             if(_this.gameSelected){
+                on_time.x = this.aGrid.w  / 2 ;
+                on_time.y = (this.aGrid.h  / 2) - (_this.gameType == 5 ? -20 : 10);
+
                 missed.x = this.aGrid.w  / 2 ;
                 missed.y = (this.aGrid.h  / 2) + 20;
 
                 failure.x = this.aGrid.w  / 2 ;
-                failure.y = (this.aGrid.h  / 2) + (_this.gameSelected ? 50 : 20)
+                failure.y = (this.aGrid.h  / 2) + 50
             }else{
                 minSpeed.x = this.aGrid.w  / 2 ;
-                minSpeed.y = (this.aGrid.h  / 2) + 20;
+                minSpeed.y = (this.aGrid.h  / 2);
 
                 maxSpeed.x = this.aGrid.w  / 2 ;
-                maxSpeed.y = (this.aGrid.h  / 2) + (_this.gameSelected ? 50 : 50)
+                maxSpeed.y = (this.aGrid.h  / 2) + (_this.gameSelected ? 50 : 30)
             }
         }
 
         precision.x = this.aGrid.w  / 2 ;
-        precision.y = (this.aGrid.h  / 2) + (_this.gameSelected ? 80 : 80)
-
+        precision.y = (this.aGrid.h  / 2) + (_this.gameType == 5 ? 30 : (_this.gameSelected  ? 80 : 60));
 
         button.x = this.aGrid.w  / 2 ;
         button.y = (this.aGrid.h  / 2) + 150;

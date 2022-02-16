@@ -122,7 +122,7 @@ export default class DoubleCircleScene extends Phaser.Scene {
 
         this.menuButton(this)
         if((this.finishTime != 0) && (this.limit_figures == 0)){
-            this.finishScene = this.time.addEvent({delay: this.finishTime, callback: this.finish, args: [this], loop: false, paused: false})
+            this.finishScene = this.time.addEvent({delay: this.finishTime, callback: this.finishGame, callbackScope: this, loop: false, paused: false})
         }else if(this.limit_figures != 0){
             this.finishScene = this.time.delayedCall({})
         }
@@ -133,7 +133,7 @@ export default class DoubleCircleScene extends Phaser.Scene {
             let total_hits = JSON.parse(localStorage.getItem(this.id_users_tests)).total_hits
             if(this.limit_figures == total_hits){
                 this.timerProactive.remove()
-                this.time.addEvent({delay: this.timeDelay, callback: this.finish, args: [this], loop: false, paused: false})
+                this.time.addEvent({delay: this.timeDelay, callback: this.finish, callbackScope: this, loop: false, paused: false})
             }
         }
 
@@ -165,7 +165,7 @@ export default class DoubleCircleScene extends Phaser.Scene {
             this.timeLimitLightOne = -2
             this.timeLimitLightTwo = -1
             
-            this.timerDelayLight = this.time.addEvent({delay: this.timeDelay, callback: this.delayLight, args: [this], loop: false, paused: false})
+            this.timerDelayLight = this.time.addEvent({delay: this.timeDelay, callback: this.delayLight, callbackScope: this, loop: false, paused: false})
         }
     }
 
@@ -212,27 +212,33 @@ export default class DoubleCircleScene extends Phaser.Scene {
         this.lightTwoPositionY = this.yLightPosition
     }
 
-    delayLight(_this){
-        _this.lightOne.visible = true
-        _this.lightTwo.visible = true
+    delayLight(){
+        this.lightOne.visible = true
+        this.lightTwo.visible = true
 
-        _this.timerProactive = _this.time.delayedCall({})
+        this.timerProactive = this.time.delayedCall({})
 
-        _this.gameModeActionLightOne()
-        _this.aGrid.placeAt(_this.xLightPosition, _this.yLightPosition, _this.lightOne);
+        this.gameModeActionLightOne()
+        this.aGrid.placeAt(this.xLightPosition, this.yLightPosition, this.lightOne);
 
-        _this.gameModeActionLightTwo()
-        _this.lightTwoPositionX = _this.xLightPosition
-        _this.lightTwoPositionY = _this.yLightPosition
-        _this.aGrid.placeAt(_this.xLightPosition, _this.yLightPosition, _this.lightTwo);
+        this.gameModeActionLightTwo()
+        this.lightTwoPositionX = this.xLightPosition
+        this.lightTwoPositionY = this.yLightPosition
+        this.aGrid.placeAt(this.xLightPosition, this.yLightPosition, this.lightTwo);
     }
 
-    finish(_this){
-        _this.lightOne.destroy()
-        _this.lightTwo.destroy()
-        _this.timerProactive ? _this.timerProactive.paused = true : null
-        _this.timerDelayLight ? _this.timerDelayLight.paused = true : null
-        _this.finishScene.paused = true
-        _this.showMessageBox(_this, _this.aGrid.w * .3, _this.aGrid.h * .6);
+    finishGame(){
+        this.finishTimeScene = this.finishScene.getElapsed()
+        this.finishScene.remove()
+        this.finishScene = this.time.addEvent({delay: this.speed, callback: this.finish, callbackScope: this, loop: false, paused: false})
+    }
+
+    finish(){
+        this.lightOne.destroy()
+        this.lightTwo.destroy()
+        this.timerProactive ? this.timerProactive.paused = true : null
+        this.timerDelayLight ? this.timerDelayLight.paused = true : null
+        this.finishScene.paused = true
+        this.showMessageBox(this, this.aGrid.w * .3, this.aGrid.h * .6);
     }
 }

@@ -53,7 +53,7 @@ export default class ReactionGameScene extends Phaser.Scene {
             this.speed_minus = this.levels_state.speed_minus
             this.min_speed_percentage = this.levels_state.min_speed_percentage
         }
-     
+
         if((this.scale.orientation == 'landscape-primary') || (this.scale.orientation == 'landscape')){
             this.maxColumns = this.cols
             this.maxRows = this.rows
@@ -83,10 +83,10 @@ export default class ReactionGameScene extends Phaser.Scene {
 
     preload(){
         if(!this.reaction_game_user['scanning']){
-            this.reactiveConfig = {delay: this.speed, callback: this.updatePosition, args: [this], loop: true, paused: false}
+            this.reactiveConfig = {delay: this.speed, callback: this.updatePosition, callbackScope: this, loop: false, paused: false}
         }
-        this.processMessageConfig = {delay: this.message_duration, callback: this.countProcessMessage, args: [this], loop: true, paused: false}
-        this.finishMessageConfig = {delay: this.finish_message_duration, callback: this.countFinishMessage, args: [this], loop: false, paused: false}
+        this.processMessageConfig = {delay: this.message_duration, callback: this.countProcessMessage, callbackScope: this, loop: true, paused: false}
+        this.finishMessageConfig = {delay: this.finish_message_duration, callback: this.countFinishMessage, callbackScope: this, loop: false, paused: false}
     }
 
     create(){
@@ -125,16 +125,10 @@ export default class ReactionGameScene extends Phaser.Scene {
 
         this.gameModeActionLight()
         this.light = this.add.circle(0, 0, this.radioLights, this.color);
+        this.light.setVisible(false)
         this.light.setInteractive({ useHandCursor: true  }, new Phaser.Geom.Circle(this.radioLights, this.radioLights, this.radioLights), Phaser.Geom.Circle.Contains)
 
         this.aGrid.placeAt(this.xLightPosition, this.yLightPosition, this.light);
-
-        if(this.reaction_game_user['scanning']){
-            this.timerProactive = this.time.delayedCall({})
-        }else{
-            this.timerReactive = this.time.addEvent(this.reactiveConfig)
-            this.reaction_game_user['counting_lights'] += 1 
-        }
 
         this.light.on('pointerdown', function () {
             this.clickOnLight = true
@@ -148,7 +142,7 @@ export default class ReactionGameScene extends Phaser.Scene {
 
                 if(this.limit_figures == this.reaction_game_user['hits']){
                     this.reaction_game_user['hits'] = 0
-                    this.reactionStatesMode(this)
+                    this.reactionStatesMode()
                 }
        
             }else{
@@ -181,8 +175,17 @@ export default class ReactionGameScene extends Phaser.Scene {
             
             this.light.visible = false
             localStorage.setItem(this.user_reaction, JSON.stringify(this.reaction_game_user)); 
-            this.timerDelayLight = this.time.addEvent({delay: this.timeDelay, callback: this.delayLight, args: [this], loop: false, paused: false})
+            this.timerDelayLight = this.time.addEvent({delay: this.timeDelay, callback: this.delayLight, callbackScope: this, loop: false, paused: false})
         }, this);
+
+        if(this.reaction_game_user['scanning']){
+            this.timerProactive = this.time.delayedCall({})
+        }else{
+            this.timerReactive = this.time.addEvent(this.reactiveConfig)
+            this.reaction_game_user['counting_lights'] += 1 
+        }
+
+        this.light.setVisible(true)
 
     }
 
@@ -190,19 +193,24 @@ export default class ReactionGameScene extends Phaser.Scene {
         if(!this.reaction_game_user['scanning']){
             if(this.reaction_game_user['counting_lights'] == (this.limit_figures + 1)){
                 this.reaction_game_user['counting_lights'] = 0
-                this.reactionStatesMode(this)
+                this.reactionStatesMode()
             }
         }
     }
 
-    updatePosition(_this){
-        if(!_this.reaction_game_user['scanning']){
-            _this.reaction_game_user['counting_lights'] += 1 
-            localStorage.setItem(_this.user_reaction, JSON.stringify(_this.reaction_game_user)); 
+    updatePosition(){
+
+        this.timerReactive.remove()
+
+        this.timerReactive = this.time.addEvent(this.reactiveConfig)
+        
+        if(!this.reaction_game_user['scanning']){
+            this.reaction_game_user['counting_lights'] += 1 
+            localStorage.setItem(this.user_reaction, JSON.stringify(this.reaction_game_user)); 
         }
 
-        _this.gameModeActionLight()
-        _this.aGrid.placeAt(_this.xLightPosition, _this.yLightPosition, _this.light);
+        this.gameModeActionLight()
+        this.aGrid.placeAt(this.xLightPosition, this.yLightPosition, this.light);
     }
 
     gameModeActionLight(){
@@ -210,31 +218,31 @@ export default class ReactionGameScene extends Phaser.Scene {
         this.yLightPosition = this.randomNumber(0, this.maxRows)
     }
 
-    delayLight(_this){
-        _this.light.visible = true
-        if(!_this.reaction_game_user['scanning']){
-            _this.reaction_game_user['counting_lights'] += 1 
-            localStorage.setItem(_this.user_reaction, JSON.stringify(_this.reaction_game_user)); 
-            _this.timerReactive = _this.time.addEvent(_this.reactiveConfig)
+    delayLight(){
+        this.light.visible = true
+        if(!this.reaction_game_user['scanning']){
+            this.reaction_game_user['counting_lights'] += 1 
+            localStorage.setItem(this.user_reaction, JSON.stringify(this.reaction_game_user)); 
+            this.timerReactive = this.time.addEvent(this.reactiveConfig)
         }else{
-            _this.timerProactive = _this.time.delayedCall({})
+            this.timerProactive = this.time.delayedCall({})
         }
         
-        _this.gameModeActionLight()
-        _this.aGrid.placeAt(_this.xLightPosition, _this.yLightPosition, _this.light);
+        this.gameModeActionLight()
+        this.aGrid.placeAt(this.xLightPosition, this.yLightPosition, this.light);
     }
 
-    countProcessMessage(_this){
-        _this.stateMessage(_this)
-        if(_this.amount_time == 0){
-            _this.timerStateMessage.remove()
-            _this.initialization()
+    countProcessMessage(){
+        this.stateMessage()
+        if(this.amount_time == 0){
+            this.timerStateMessage.remove()
+            this.initialization()
         }else{
-            _this.amount_time = _this.amount_time - 1
+            this.amount_time = this.amount_time - 1
         }
     }
 
-    stateMessage(_this){
+    stateMessage(){
   
         this.back ? this.back.destroy() : null
         this.box_title ? this.box_title.destroy() : null
@@ -308,7 +316,7 @@ export default class ReactionGameScene extends Phaser.Scene {
         this.colorText = "#FFFFFF";
 
         if(this.end_game){
-            this.boxMessage = this.boxMessage.replace("%level%", _this.reaction_game_user['levels_count']).replace("%speed%", Math.round(_this.reaction_game_user['last_correct_speed']))
+            this.boxMessage = this.boxMessage.replace("%level%", this.reaction_game_user['levels_count']).replace("%speed%", Math.round(this.reaction_game_user['last_correct_speed']))
             this.finishSerie = false
             this.messageBox(this)
         }else if(this.finish_message_enable){
@@ -363,28 +371,28 @@ export default class ReactionGameScene extends Phaser.Scene {
         }
     }
 
-    messageBox(_this){
+    messageBox(){
         //make a group to hold all the elements
-        let msgBox = _this.add.group();
-        let back = _this.add.rectangle(0, 0);
+        let msgBox = this.add.group();
+        let back = this.add.rectangle(0, 0);
         back.setFillStyle(0x000000);
         back.setStrokeStyle(4, 0xffffff)
 
-        let box_title = _this.add.text(0, 0, _this.boxTitle)
+        let box_title = this.add.text(0, 0, this.boxTitle)
             .setStyle({ fontSize: '54px', fontFamily: 'Arial', align: 'center'});
 
-        let box_message = _this.add.text(0, 0, _this.boxMessage)
-            .setStyle({ fontSize: (_this.amount_time >= 4) ? '32px' : '70px', fontFamily: 'Arial', align: 'center', color: _this.colorText});
+        let box_message = this.add.text(0, 0, this.boxMessage)
+            .setStyle({ fontSize: (this.amount_time >= 4) ? '32px' : '70px', fontFamily: 'Arial', align: 'center', color: this.colorText});
 
         let max_speed = null
         let min_speed = null
 
-        if(!_this.reaction_game_user['scanning']){
-            if(_this.finishSerie){
-                max_speed = _this.add.text(0, 0, _this.maxSpeedMessage)
+        if(!this.reaction_game_user['scanning']){
+            if(this.finishSerie){
+                max_speed = this.add.text(0, 0, this.maxSpeedMessage)
                     .setStyle({ fontSize: '60px', fontFamily: 'Arial', align: 'center', color: '#FFFFFF'});
 
-                min_speed = _this.add.text(0, 0, _this.minSpeedMessage)
+                min_speed = this.add.text(0, 0, this.minSpeedMessage)
                     .setStyle({ fontSize: '60px', fontFamily: 'Arial', align: 'center', color: '#FFFFFF'});
             }
         }
@@ -399,160 +407,160 @@ export default class ReactionGameScene extends Phaser.Scene {
         msgBox.add(back)
         msgBox.add(box_title)
         msgBox.add(box_message)
-        if(!_this.reaction_game_user['scanning']){
-            if(_this.finishSerie){
+        if(!this.reaction_game_user['scanning']){
+            if(this.finishSerie){
                 msgBox.add(max_speed)
                 msgBox.add(min_speed)
             }
         }
 
-        msgBox.setXY(_this.aGrid.w / 2, (_this.aGrid.h / 2) + 100)
+        msgBox.setXY(this.aGrid.w / 2, (this.aGrid.h / 2) + 100)
         msgBox.setOrigin(0.5)
 
         //set the text in the middle of the message box
-        box_message.x = _this.aGrid.w  / 2;
-        box_message.y = (_this.aGrid.h  / 2) + 100;
-        if(!_this.reaction_game_user['scanning']){
-            if(_this.finishSerie){
-                box_message.y = (_this.aGrid.h  / 2) + 10;
+        box_message.x = this.aGrid.w  / 2;
+        box_message.y = (this.aGrid.h  / 2) + 100;
+        if(!this.reaction_game_user['scanning']){
+            if(this.finishSerie){
+                box_message.y = (this.aGrid.h  / 2) + 10;
 
-                max_speed.x = _this.aGrid.w  / 2;
-                max_speed.y = (_this.aGrid.h  / 2) + 90;
+                max_speed.x = this.aGrid.w  / 2;
+                max_speed.y = (this.aGrid.h  / 2) + 90;
 
-                min_speed.x = _this.aGrid.w  / 2;
-                min_speed.y = (_this.aGrid.h  / 2) + 180;
+                min_speed.x = this.aGrid.w  / 2;
+                min_speed.y = (this.aGrid.h  / 2) + 180;
             }
         }
         
         box_message.setOrigin(0.5);
 
-        box_title.x = _this.aGrid.w  / 2 ;
-        box_title.y = (_this.aGrid.h  / 2) - this.h/2 - 100;
+        box_title.x = this.aGrid.w  / 2 ;
+        box_title.y = (this.aGrid.h  / 2) - this.h/2 - 100;
         box_title.setOrigin(0.5);
 
-        _this.msgBox = msgBox;
-        _this.back = back
-        _this.box_message = box_message
-        _this.box_title = box_title
-        if(!_this.reaction_game_user['scanning']){
-            if(_this.finishSerie){
-                _this.max_speed = max_speed
-                _this.min_speed = min_speed
+        this.msgBox = msgBox;
+        this.back = back
+        this.box_message = box_message
+        this.box_title = box_title
+        if(!this.reaction_game_user['scanning']){
+            if(this.finishSerie){
+                this.max_speed = max_speed
+                this.min_speed = min_speed
             }
         }
     }
 
-    endGameMessage(_this){
-        _this.stateMessage(_this)
+    endGameMessage(){
+        this.stateMessage()
     }
 
-    countFinishMessage(_this){
-        _this.finishMessage.remove()
-        if(!_this.end_game){
-            if(_this.reaction_game_user['scanning']){
-                _this.reaction_game_user['scanning'] = false
-                _this.reaction_game_user['hits'] = 0
-                localStorage.setItem(_this.user_reaction, JSON.stringify(_this.reaction_game_user));
-                _this.scene.start('ReactionGameScene', _this);
+    countFinishMessage(){
+        this.finishMessage.remove()
+        if(!this.end_game){
+            if(this.reaction_game_user['scanning']){
+                this.reaction_game_user['scanning'] = false
+                this.reaction_game_user['hits'] = 0
+                localStorage.setItem(this.user_reaction, JSON.stringify(this.reaction_game_user));
+                this.scene.start('ReactionGameScene', this);
             }else{
-                _this.scene.start('ReactionGameScene', _this);
+                this.scene.start('ReactionGameScene', this);
             }
         }else{
-            _this.finishMessageConfig = {delay: _this.finish_message_duration, callback: _this.endGameMessage, args: [_this], loop: false, paused: false}
-            _this.finishMessage = _this.time.addEvent(_this.finishMessageConfig)
+            this.finishMessageConfig = {delay: this.finish_message_duration, callback: this.endGameMessage, callbackScope: this, loop: false, paused: false}
+            this.finishMessage = this.time.addEvent(this.finishMessageConfig)
         }
     }
 
-    reactionStatesMode(_this){
-        if(_this.reaction_game_user['scanning']){
-            _this.reaction_game_user['scanning_count'] += 1
+    reactionStatesMode(){
+        if(this.reaction_game_user['scanning']){
+            this.reaction_game_user['scanning_count'] += 1
 
-            if(_this.reaction_game_user['scanning_count'] == _this.series){
-                _this.finish_message_enable = true
-                _this.reaction_game_user['speed'] = _this.reaction_game_user['speed'] / _this.series
-                _this.light.destroy()
-                _this.timerProactive ? _this.timerProactive.paused = true : null
-                _this.timerDelayLight ? _this.timerDelayLight.paused = true : null
-                _this.stateMessage(_this)
-                localStorage.setItem(_this.user_reaction, JSON.stringify(_this.reaction_game_user));
-                _this.finishMessage = _this.time.addEvent(_this.finishMessageConfig)
+            if(this.reaction_game_user['scanning_count'] == this.series){
+                this.finish_message_enable = true
+                this.reaction_game_user['speed'] = this.reaction_game_user['speed'] / (this.series * this.limit_figures)
+                this.light.destroy()
+                this.timerProactive ? this.timerProactive.paused = true : null
+                this.timerDelayLight ? this.timerDelayLight.paused = true : null
+                this.stateMessage(this)
+                localStorage.setItem(this.user_reaction, JSON.stringify(this.reaction_game_user));
+                this.finishMessage = this.time.addEvent(this.finishMessageConfig)
             }else{
-                _this.scene.start('ReactionGameScene', _this);
+                this.scene.start('ReactionGameScene', this);
             }
         }else{
 
-            _this.porcentage_hits = (_this.reaction_game_user['hits'] * 100)/_this.limit_figures
-            _this.reaction_game_user['series_hit'].push(_this.porcentage_hits)
-            _this.reaction_game_user['hits'] = 0
-            _this.finishSerie = true;
+            this.porcentage_hits = (this.reaction_game_user['hits'] * 100)/this.limit_figures
+            this.reaction_game_user['series_hit'].push(this.porcentage_hits)
+            this.reaction_game_user['hits'] = 0
+            this.finishSerie = true;
 
-            _this.light.destroy()
-            _this.timerReactive ? _this.timerReactive.remove() : null
-            _this.timerDelayLight ? _this.timerDelayLight.remove() : null
+            this.light.destroy()
+            this.timerReactive ? this.timerReactive.remove() : null
+            this.timerDelayLight ? this.timerDelayLight.remove() : null
 
-            let countFiltered = _this.reaction_game_user['series_hit'].filter(function(element){
-                return element >= (_this.min_speed_percentage * 100);
+            const min_speed_percentage = this.min_speed_percentage
+            let countFiltered = this.reaction_game_user['series_hit'].filter(function(element){
+                return element >= (min_speed_percentage * 100);
             }).length
 
-            if(_this.porcentage_hits >= (_this.min_speed_percentage * 100)){
-                _this.correctColorPorcentage = true
+            if(this.porcentage_hits >= (this.min_speed_percentage * 100)){
+                this.correctColorPorcentage = true
             }else{
-                _this.correctColorPorcentage = false
+                this.correctColorPorcentage = false
             }
 
-            if(_this.reaction_game_user['speeds'].length == 0){
-                _this.reaction_game_user['speeds'] = [0]
+            if(this.reaction_game_user['speeds'].length == 0){
+                this.reaction_game_user['speeds'] = [0]
             }
 
-            _this.stateMessage(_this)
-            _this.reaction_game_user['speeds'] = []
+            this.stateMessage(this)
+            this.reaction_game_user['speeds'] = []
 
-            if((_this.reaction_game_user['levels_sub_count'] == _this.series) || (countFiltered == _this.minimum_series)){
-                _this.reaction_game_user['levels_sub_count'] = 0
-                _this.reaction_game_user['series_hit'] = []
+            if((this.reaction_game_user['levels_sub_count'] == this.series) || (countFiltered == this.minimum_series)){
+                this.reaction_game_user['levels_sub_count'] = 0
+                this.reaction_game_user['series_hit'] = []
 
-                if(_this.reaction_game_user['try_level_one']){
-                    if(_this.reaction_game_user['levels_count'] == 1){
-                        if(_this.reaction_game_user['levels_count'] == _this.levels){
-                            _this.end_game = true
+                if(this.reaction_game_user['try_level_one']){
+                    if(this.reaction_game_user['levels_count'] == 1){
+                        if(this.reaction_game_user['levels_count'] == this.levels){
+                            this.end_game = true
                         }else{
-                            _this.reaction_game_user['last_correct_speed'] = _this.reaction_game_user['speed']
-                            if(countFiltered < _this.minimum_series){
-                                _this.reaction_game_user['levels_count'] = 1
-                                _this.reaction_game_user['try_level_one'] = false
+                            this.reaction_game_user['last_correct_speed'] = this.reaction_game_user['speed']
+                            if(countFiltered < this.minimum_series){
+                                this.reaction_game_user['levels_count'] = 1
+                                this.reaction_game_user['try_level_one'] = false
                             }else{
-                                _this.reaction_game_user['speed'] -= _this.speed_minus
-                                _this.reaction_game_user['levels_count'] += 1
+                                this.reaction_game_user['speed'] -= this.speed_minus
+                                this.reaction_game_user['levels_count'] += 1
                             }
                         }
                     }else{
-                        if(countFiltered < _this.minimum_series){
-                            _this.end_game = true
+                        if(countFiltered < this.minimum_series){
+                            this.end_game = true
                         }else{
-                            if(_this.reaction_game_user['levels_count'] == _this.levels){
-                                _this.reaction_game_user['last_correct_speed'] = _this.reaction_game_user['speed']
-                                _this.end_game = true
+                            if(this.reaction_game_user['levels_count'] == this.levels){
+                                this.reaction_game_user['last_correct_speed'] = this.reaction_game_user['speed']
+                                this.end_game = true
                             }else{
-                                _this.reaction_game_user['last_correct_speed'] = _this.reaction_game_user['speed']
-                                _this.reaction_game_user['levels_count'] += 1
-                                _this.reaction_game_user['speed'] -= _this.speed_minus
+                                this.reaction_game_user['last_correct_speed'] = this.reaction_game_user['speed']
+                                this.reaction_game_user['levels_count'] += 1
+                                this.reaction_game_user['speed'] -= this.speed_minus
                             }
                         }
 
                     }
                 }else{
-                    if(countFiltered < _this.minimum_series){
-                        _this.end_game = true
+                    if(countFiltered < this.minimum_series){
+                        this.end_game = true
                     }else{
-                        _this.reaction_game_user['try_level_one'] = true
+                        this.reaction_game_user['try_level_one'] = true
                     }
                 }
             }
-            _this.reaction_game_user['levels_sub_count'] += 1
+            this.reaction_game_user['levels_sub_count'] += 1
 
-            localStorage.setItem(_this.user_reaction, JSON.stringify(_this.reaction_game_user));
-            _this.finishMessage = _this.time.addEvent(_this.finishMessageConfig)
+            localStorage.setItem(this.user_reaction, JSON.stringify(this.reaction_game_user));
+            this.finishMessage = this.time.addEvent(this.finishMessageConfig)
         }
-        localStorage.setItem(_this.user_reaction, JSON.stringify(_this.reaction_game_user));
     }
 }

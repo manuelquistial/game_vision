@@ -37,7 +37,7 @@ export default class ArrowsScene extends Phaser.Scene {
     }
 
     preload(){
-        this.reactiveConfig = {delay: this.speed, callback: this.updatePosition, args: [this], loop: true, paused: false}
+        this.reactiveConfig = {delay: this.speed, callback: this.updatePosition, callbackScope: this, loop: false, paused: false}
         
         this.load.image('image_0', `${this.source_path}/img/down_arrow.svg`);
         this.load.image('image_1', `${this.source_path}/img/up_arrow.svg`);
@@ -85,10 +85,8 @@ export default class ArrowsScene extends Phaser.Scene {
         this.figures.setOrigin(0.5)
         
         this.container = this.add.container(0, 0, [this.lights, this.figures])
-
+        this.container.setVisible(false)
         this.aGrid.placeAt(this.xLightPosition, this.yLightPosition, this.container);
-
-        this.timerReactive = this.time.addEvent(this.reactiveConfig)
 
         this.left_side = this.add.circle(0, 0, this.fixationRadio, this.color);
 
@@ -192,10 +190,13 @@ export default class ArrowsScene extends Phaser.Scene {
 
         this.menuButton(this)
         if((this.finishTime != 0) && (this.limit_figures == 0)){
-            this.finishScene = this.time.addEvent({delay: this.finishTime, callback: this.finish, args: [this], loop: false, paused: false})
+            this.finishScene = this.time.addEvent({delay: this.finishTime, callback: this.finishGame, callbackScope: this, loop: false, paused: false})
         }else if(this.limit_figures != 0){
             this.finishScene = this.time.delayedCall({})
         }
+
+        this.timerReactive = this.time.addEvent(this.reactiveConfig)
+        this.container.setVisible(true)
     }
 
     update() {
@@ -204,7 +205,7 @@ export default class ArrowsScene extends Phaser.Scene {
 
             if(this.limit_figures == total_hits){
                 this.timerReactive.remove()
-                this.time.addEvent({delay: this.timeDelay, callback: this.finish, args: [this], loop: false, paused: false})
+                this.time.addEvent({delay: this.timeDelay, callback: this.finish, callbackScope: this, loop: false, paused: false})
             }
         }
     }
@@ -242,60 +243,69 @@ export default class ArrowsScene extends Phaser.Scene {
             }
         }
 
-        this.timerDelayLight = this.time.addEvent({delay: this.timeDelay, callback: this.delayLight, args: [this], loop: false, paused: false})
+        this.timerDelayLight = this.time.addEvent({delay: this.timeDelay, callback: this.delayLight, callbackScope: this, loop: false, paused: false})
 
     }
 
-    updatePosition(_this){
+    updatePosition(){
 
-        _this.gameModeAction()
+        this.gameModeAction()
 
-        _this.figures.setTexture(_this.randomFigures())
+        this.figures.setTexture(this.randomFigures())
 
         let points = {
             "time_reaction": 0,
-            "position_x": _this.xLightPosition,
-            "position_y": _this.yLightPosition,
+            "position_x": this.xLightPosition,
+            "position_y": this.yLightPosition,
             "response": 0
         }
-        _this.postGameData(_this, points)
-        _this.saveLocalPoints(_this, 'total_hits')
+        this.postGameData(this, points)
+        this.saveLocalPoints(this, 'total_hits')
 
-        _this.aGrid.placeAt(_this.xLightPosition, _this.yLightPosition, _this.container);
+        this.aGrid.placeAt(this.xLightPosition, this.yLightPosition, this.container);
+
+        this.timerReactive.remove()
+        this.timerReactive = this.time.addEvent(this.reactiveConfig)
     }
 
-    delayLight(_this){
+    delayLight(){
      
-        _this.container.visible = true
+        this.container.visible = true
 
-        _this.timerReactive = _this.time.addEvent(_this.reactiveConfig)
+        this.timerReactive = this.time.addEvent(this.reactiveConfig)
 
-        _this.gameModeAction()
+        this.gameModeAction()
 
-        _this.figures.setTexture(_this.randomFigures())
+        this.figures.setTexture(this.randomFigures())
 
         /*let points = {
             "time_reaction": 0,
-            "position_x": _this.xLightPosition,
-            "position_y": _this.yLightPosition,
+            "position_x": this.xLightPosition,
+            "position_y": this.yLightPosition,
             "response": 2
         }
-        _this.postGameData(_this, points)
-        _this.saveLocalPoints(_this, 'total_hits')*/
+        this.postGameData(this, points)
+        this.saveLocalPoints(this, 'total_hits')*/
 
-        _this.aGrid.placeAt(_this.xLightPosition, _this.yLightPosition, _this.container);
+        this.aGrid.placeAt(this.xLightPosition, this.yLightPosition, this.container);
     }
     
     randomFigures(){
         return "image_" + this.randomNumber(0, 4).toString()
     }
 
-    finish(_this){
-        _this.lights.destroy()
-        _this.endGame = true
-        _this.timerReactive ? _this.timerReactive.paused = true : null
-        _this.timerDelayLight ? _this.timerDelayLight.paused = true : null
-        _this.finishScene.paused = true
-        _this.showMessageBox(_this, _this.game.config.width * .3, _this.game.config.height * .6);
+    finishGame(){
+        this.finishTimeScene = this.finishScene.getElapsed()
+        this.finishScene.remove()
+        this.finishScene = this.time.addEvent({delay: this.speed, callback: this.finish, callbackScope: this, loop: false, paused: false})
+    }
+
+    finish(){
+        this.lights.destroy()
+        this.endGame = true
+        this.timerReactive ? this.timerReactive.paused = true : null
+        this.timerDelayLight ? this.timerDelayLight.paused = true : null
+        this.finishScene.paused = true
+        this.showMessageBox(this, this.game.config.width * .3, this.game.config.height * .6);
     }
 }

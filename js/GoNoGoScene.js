@@ -35,7 +35,7 @@ export default class GoNoGoScene extends Phaser.Scene {
     }
 
     preload(){
-        this.reactiveConfig = {delay: this.speed, callback: this.updatePosition, args: [this], loop: true, paused: false}
+        this.reactiveConfig = {delay: this.speed, callback: this.updatePosition, callbackScope: this, loop: false, paused: false}
         this.colors = [this.color, this.failureColorCircle]
     }
 
@@ -75,6 +75,7 @@ export default class GoNoGoScene extends Phaser.Scene {
         }
 
         this.light = this.add.circle(0, 0, this.radioLights, random_color);
+        this.light.setVisible(false)
         this.light.setInteractive({ useHandCursor: true  }, new Phaser.Geom.Circle(this.radioLights, this.radioLights, this.radioLights), Phaser.Geom.Circle.Contains)
 
         this.aGrid.placeAt(this.xLightPosition, this.yLightPosition, this.light);
@@ -119,7 +120,7 @@ export default class GoNoGoScene extends Phaser.Scene {
             this.postGameData(this, points)
             this.saveLocalPoints(this, 'total_hits')
 
-            this.timerDelayLight = this.time.addEvent({delay: this.timeDelay, callback: this.delayLight, args: [this], loop: false, paused: false})
+            this.timerDelayLight = this.time.addEvent({delay: this.timeDelay, callback: this.delayLight, callbackScope: this, loop: false, paused: false})
         }, this);
 
         this.input.on('pointerdown', (data) => {
@@ -142,13 +143,15 @@ export default class GoNoGoScene extends Phaser.Scene {
         });
 
         this.menuButton(this)
-        this.timerReactive = this.time.addEvent(this.reactiveConfig)
         
         if((this.finishTime != 0) && (this.limit_figures == 0)){
-            this.finishScene = this.time.addEvent({delay: this.finishTime, callback: this.finish, args: [this], loop: false, paused: false})
+            this.finishScene = this.time.addEvent({delay: this.finishTime, callback: this.finishGame, callbackScope: this, loop: false, paused: false})
         }else if(this.limit_figures != 0){
             this.finishScene = this.time.delayedCall({})
         }
+
+        this.timerReactive = this.time.addEvent(this.reactiveConfig)
+        this.light.setVisible(true)
     }
 
     update() {
@@ -156,7 +159,7 @@ export default class GoNoGoScene extends Phaser.Scene {
             let total_hits = JSON.parse(localStorage.getItem(this.id_users_tests)).total_hits
             if(this.limit_figures == total_hits){
                 this.timerReactive.remove()
-                this.time.addEvent({delay: this.timeDelay, callback: this.finish, args: [this], loop: false, paused: false})
+                this.time.addEvent({delay: this.timeDelay, callback: this.finish, callbackScope: this, loop: false, paused: false})
             }
         }
     }
@@ -166,46 +169,50 @@ export default class GoNoGoScene extends Phaser.Scene {
         this.yLightPosition = this.randomNumber(0, this.maxRows)
     }
 
-    updatePosition(_this){
-        
+    updatePosition(){
+
         let points = {
             "time_reaction": 0,
-            "position_x": _this.xLightPosition,
-            "position_y": _this.yLightPosition,
+            "position_x": this.xLightPosition,
+            "position_y": this.yLightPosition,
             "response": 0
         }
-        _this.postGameData(_this, points)
-        _this.saveLocalPoints(_this, 'total_hits')
+        this.postGameData(this, points)
+        this.saveLocalPoints(this, 'total_hits')
 
-        _this.gameModeActionLight()
-        const random_color = _this.randomColors()
-        if(random_color == _this.color){
+        this.gameModeActionLight()
+        const random_color = this.randomColors()
+        
+        if(random_color == this.color){
             points.response = 3
-            _this.postGameData(_this, points)
-            _this.saveLocalPoints(_this, 'total_go')
+            this.postGameData(this, points)
+            this.saveLocalPoints(this, 'total_go')
         }
-        _this.light.setFillStyle(random_color, 1)
-        _this.aGrid.placeAt(_this.xLightPosition, _this.yLightPosition, _this.light);
+        this.light.setFillStyle(random_color, 1)
+        this.aGrid.placeAt(this.xLightPosition, this.yLightPosition, this.light);
+
+        this.timerReactive.remove()
+        this.timerReactive = this.time.addEvent(this.reactiveConfig)
     }
 
-    delayLight(_this){
-        _this.light.visible = true
-        _this.timerReactive = _this.time.addEvent(_this.reactiveConfig)
+    delayLight(){
+        this.light.visible = true
+        this.timerReactive = this.time.addEvent(this.reactiveConfig)
 
-        _this.gameModeActionLight()
-        const random_color = _this.randomColors()
-        if(random_color == _this.color){
+        this.gameModeActionLight()
+        const random_color = this.randomColors()
+        if(random_color == this.color){
             let points = {
                 "time_reaction": 0,
-                "position_x": _this.xLightPosition,
-                "position_y": _this.yLightPosition,
+                "position_x": this.xLightPosition,
+                "position_y": this.yLightPosition,
                 "response": 3
             }
-            _this.postGameData(_this, points)
-            _this.saveLocalPoints(_this, 'total_go')
+            this.postGameData(this, points)
+            this.saveLocalPoints(this, 'total_go')
         }
-        _this.light.setFillStyle(random_color, 1)
-        _this.aGrid.placeAt(_this.xLightPosition, _this.yLightPosition, _this.light);
+        this.light.setFillStyle(random_color, 1)
+        this.aGrid.placeAt(this.xLightPosition, this.yLightPosition, this.light);
     }
 
     randomColors(){
@@ -217,12 +224,18 @@ export default class GoNoGoScene extends Phaser.Scene {
         return randomNumber + exclude_array.sort((a, b) => a - b).reduce((acc, element) => { return randomNumber >= element - acc ? acc + 1 : acc}, 0);
     }*/
 
-    finish(_this){
-        _this.light.destroy()
-        _this.endGame = true
-        _this.timerReactive ? _this.timerReactive.paused = true : null
-        _this.timerDelayLight ? _this.timerDelayLight.paused = true : null
-        _this.finishScene.paused = true
-        _this.showMessageBox(_this, _this.aGrid.w * .3, _this.aGrid.h * .6);
+    finishGame(){
+        this.finishTimeScene = this.finishScene.getElapsed()
+        this.finishScene.remove()
+        this.finishScene = this.time.addEvent({delay: this.speed, callback: this.finish, callbackScope: this, loop: false, paused: false})
+    }
+
+    finish(){
+        this.light.destroy()
+        this.endGame = true
+        this.timerReactive ? this.timerReactive.paused = true : null
+        this.timerDelayLight ? this.timerDelayLight.paused = true : null
+        this.finishScene.paused = true
+        this.showMessageBox(this, this.aGrid.w * .3, this.aGrid.h * .6);
     }
 }

@@ -21,6 +21,7 @@ export default class BaseScene extends Phaser.Scene {
         this.size = data.size
         this.color = data.color
         this.colorFixation = data.colorFixation
+        this.secondColor = data.secondColor
         this.gameSelected = data.gameSelected
         this.speed = data.speed
         this.timeDelay = data.timeDelay
@@ -36,6 +37,8 @@ export default class BaseScene extends Phaser.Scene {
         this.postGameData = data.postGameData
         this.limit_figures = data.limit_figures
 
+        this.doubleColor = data.doubleColor
+
         //functions
         this.randomNumber = data.randomNumber
         this.saveLocalPoints = data.saveLocalPoints
@@ -45,8 +48,11 @@ export default class BaseScene extends Phaser.Scene {
     }
 
     preload(){
-        this.reactiveConfig = {delay: this.speed, callback: this.updatePosition, args: [this], loop: true, paused: false}
-        this.proactiveConfig = {delay: this.speed, loop: false, paused: false}
+        this.reactiveConfig = {delay: this.speed, callback: this.updatePosition, loop: false, callbackScope: this, paused: false}
+
+        if(this.doubleColor){
+            this.colors = [this.color, this.secondColor]
+        }
     }
 
     create() {
@@ -85,7 +91,7 @@ export default class BaseScene extends Phaser.Scene {
             this.fixationLight = this.add.circle(this.aGrid.w / 2, this.aGrid.h / 2, this.fixationRadio, this.colorFixation);
             if(this.fixationEnable === 'blink'){
                 this.fixationLight.setVisible(true)
-                this.timerFixLight = this.time.addEvent({delay: this.timeFix, callback: this.fixLight, args: [this], loop: true, paused: false})
+                this.timerFixLight = this.time.addEvent({delay: this.timeFix, callback: this.fixLight, callbackScope: this, loop: true, paused: false})
             }
         }else{
             if(this.timerFixLight){
@@ -94,22 +100,14 @@ export default class BaseScene extends Phaser.Scene {
         }
 
         this.gameModeAction()
+        if(this.doubleColor){
+            this.color = this.randomColors()
+        }
         this.lights = this.add.circle(0, 0, this.radioLights, this.color);
+        this.lights.setVisible(false)
         this.lights.setInteractive({ useHandCursor: true  }, new Phaser.Geom.Circle(this.radioLights, this.radioLights, this.radioLights), Phaser.Geom.Circle.Contains)
 
         this.aGrid.placeAt(this.xLightPosition, this.yLightPosition, this.lights);
-
-        if(this.gameSelected){
-            if(this.timerProactive){
-                this.timerProactive.remove()
-            }
-            this.timerReactive = this.time.addEvent(this.reactiveConfig)
-        }else{
-            if(this.timerReactive){
-                this.timerReactive.remove()
-            }
-            this.timerProactive = this.time.addEvent(this.proactiveConfig)
-        }
 
         let points = {
             "time_reaction": 0,
@@ -155,14 +153,14 @@ export default class BaseScene extends Phaser.Scene {
                 this.postGameData(this, points)
 
                 this.speedProactive.push(timeLimitLight)
-                console.log(this.speedProactive)
+
                 this.saveLocalPoints(this, 'on_time')
                 this.saveLocalPoints(this, 'precision', timeLimitLight)
 
             }
 
             this.lights.visible = false
-            this.timerDelayLight = this.time.addEvent({delay: this.timeDelay, callback: this.delayLight, args: [this], loop: false, paused: false})
+            this.timerDelayLight = this.time.addEvent({delay: this.timeDelay, callback: this.delayLight, callbackScope: this, loop: false, paused: false})
         }, this);
 
         if(this.gameSelected){
@@ -187,8 +185,23 @@ export default class BaseScene extends Phaser.Scene {
         }
 
         this.menuButton(this)
+        
+        if(this.gameSelected){
+            if(this.timerProactive){
+                this.timerProactive.remove()
+            }
+            this.timerReactive = this.time.addEvent(this.reactiveConfig)
+        }else{
+            if(this.timerReactive){
+                this.timerReactive.remove()
+            }
+            this.timerProactive = this.time.delayedCall({})
+        }
+
+        this.lights.setVisible(true)
+
         if((this.finishTime != 0) && (this.limit_figures == 0)){
-            this.finishScene = this.time.addEvent({delay: this.finishTime, callback: this.finish, args: [this], loop: false, paused: false})
+            this.finishScene = this.time.addEvent({delay: this.finishTime, callback: this.finishGame, callbackScope: this, loop: false, paused: false})
         }else if(this.limit_figures != 0){
             this.finishScene = this.time.delayedCall({})
         }
@@ -203,7 +216,7 @@ export default class BaseScene extends Phaser.Scene {
                 }else{
                     this.timerProactive.remove()
                 }
-                this.time.addEvent({delay: this.timeDelay, callback: this.finish, args: [this], loop: false, paused: false})
+                this.time.addEvent({delay: this.timeDelay, callback: this.finish, callbackScope: this, loop: false, paused: false})
             }
         }
     }
@@ -258,62 +271,79 @@ export default class BaseScene extends Phaser.Scene {
         }
     }
 
-    updatePosition(_this){
+    updatePosition(){
 
-        //_this.failureAudio ? _this.failureAudio.play() : null
-        let timeLimitLight = _this.timerReactive.getElapsed()
         let points = {
             "time_reaction": 0,
-            "position_x": _this.xLightPosition,
-            "position_y": _this.yLightPosition,
+            "position_x": this.xLightPosition,
+            "position_y": this.yLightPosition,
             "response": 0
         }
-        _this.postGameData(_this, points)
-        _this.saveLocalPoints(_this, 'total_hits')
+        this.postGameData(this, points)
+        this.saveLocalPoints(this, 'total_hits')
 
-        _this.gameModeAction()
-        _this.aGrid.placeAt(_this.xLightPosition, _this.yLightPosition, _this.lights);
- 
+        this.gameModeAction()
+        if(this.doubleColor){
+            const random_color = this.randomColors()
+            this.lights.setFillStyle(random_color, 1)
+        }
+        this.aGrid.placeAt(this.xLightPosition, this.yLightPosition, this.lights);
+
+        this.timerReactive.remove()
+        this.timerReactive = this.time.addEvent(this.reactiveConfig)
     }
 
-    fixLight(_this){
-        if(_this.fixationLight.visible){
-            _this.fixationLight.setVisible(false)
+    fixLight(){
+        if(this.fixationLight.visible){
+            this.fixationLight.setVisible(false)
         }else{
-            _this.fixationLight.setVisible(true)
+            this.fixationLight.setVisible(true)
         }
     }
 
-    delayLight(_this){
-        _this.lights.visible = true
-        if(_this.gameSelected){
+    delayLight(){
+        this.lights.visible = true
+        if(this.gameSelected){
             
-            _this.timerReactive = _this.time.addEvent(_this.reactiveConfig)
+            this.timerReactive = this.time.addEvent(this.reactiveConfig)
         }else{
     
-            _this.timerProactive = _this.time.addEvent(_this.proactiveConfig)
+            this.timerProactive = this.time.delayedCall({})
 
             let points = {
                 "time_reaction": 0,
-                "position_x": _this.xLightPosition,
-                "position_y": _this.yLightPosition,
+                "position_x": this.xLightPosition,
+                "position_y": this.yLightPosition,
                 "response": 0
             }
-            _this.postGameData(_this, points)
-            _this.saveLocalPoints(_this, 'total_hits')
+            this.postGameData(this, points)
+            this.saveLocalPoints(this, 'total_hits')
         }
         
-        _this.gameModeAction()
-        _this.aGrid.placeAt(_this.xLightPosition, _this.yLightPosition, _this.lights);
+        this.gameModeAction()
+        if(this.doubleColor){
+            const random_color = this.randomColors()
+            this.lights.setFillStyle(random_color, 1)
+        }
+        this.aGrid.placeAt(this.xLightPosition, this.yLightPosition, this.lights);
     }
 
-    finish(_this){
-        _this.lights.destroy()
-        _this.endGame = true
-        _this.timerProactive ? _this.timerProactive.paused = true : null
-        _this.timerReactive ? _this.timerReactive.paused = true : null
-        _this.timerDelayLight ? _this.timerDelayLight.paused = true : null
-        _this.finishScene.paused = true
-        _this.showMessageBox(_this, _this.aGrid.w * .3, _this.aGrid.h * .6);
+    randomColors(){
+        return this.colors[this.randomNumber(0,2)]
+    }
+
+    finishGame(){
+        this.finishTimeScene = this.finishScene.getElapsed()
+        this.finishScene.remove()
+        this.finishScene = this.time.addEvent({delay: this.speed, callback: this.finish, callbackScope: this, loop: false, paused: false})
+    }
+
+    finish(){
+        this.lights.destroy()
+        this.endGame = true
+        this.timerProactive ? this.timerProactive.paused = true : null
+        this.timerReactive ? this.timerReactive.paused = true : null
+        this.timerDelayLight ? this.timerDelayLight.paused = true : null
+        this.showMessageBox(this, this.aGrid.w * .3, this.aGrid.h * .6);
     }
 }
